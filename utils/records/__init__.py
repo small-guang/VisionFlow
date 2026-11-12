@@ -1,0 +1,1 @@
+"""Output record construction utilities."""

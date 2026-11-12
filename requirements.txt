@@ -1,0 +1,12 @@
+pymilvus==3.0.1
+loguru==0.7.3
+aiokafka==0.10.0
+oss2==2.19.1
+minio==7.2.20
+opencv-python-headless==5.0.0.93
+tritonclient[grpc,http]==2.72.0
+SQLAlchemy==2.0.25
+asyncpg==0.31.0
+uvloop==0.22.1
+pydantic-settings==2.15.0
+python-dotenv==1.2.3

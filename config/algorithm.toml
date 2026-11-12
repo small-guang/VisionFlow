@@ -1,0 +1,191 @@
+# 人脸匹配阈值均为无单位相似度，达到或超过阈值即视为满足。
+[face.matching]
+general_similarity_threshold = 0.38  # 通用人脸相似度阈值（含边界）
+single_sample_similarity_threshold = 0.55  # 单样本人脸相似度阈值（含边界）
+
+# 每个 Face ID 跨设备保留的向量上限；满额后按质量分和采集时间择优更新。
+[face.gallery]
+max_vectors_per_id = 20  # 范围 1–1000（含边界）；调低后在该身份下次写入时清理超额向量
+
+# 裁剪倍率为无单位值，最小值含边界。
+[face.crop]
+scale_factor = 2.0  # 人脸框扩展裁剪倍率（无单位，>= 1）
+
+# 质量分数为含边界的最小值；宽度单位为像素；姿态为绝对角度。
+[face.quality]
+recognition_min_score = 2.0  # 人脸识别所需最低质量分数（含边界）
+enroll_min_score = 5.5  # 人脸入库所需最低质量分数（含边界）
+min_face_width_px = 20.0  # 人脸最小宽度（像素，含边界）
+max_pose_abs_degrees = 65.0  # 人脸允许的最大绝对姿态角（度，含边界）
+geometry_std_ratio_threshold = 0.65  # 人脸几何标准差比例阈值（无单位，含边界）
+laplacian_threshold = 12.0  # 人脸清晰度拉普拉斯阈值（含边界）
+feature_norm_threshold = 0.30  # 人脸特征向量范数阈值（含边界）
+
+# 偏航角单位为度，到达阈值即判为侧脸。
+[face.orientation]
+side_yaw_degrees = 20.0  # 判定侧脸的偏航角阈值（度，含边界）
+
+# IoU、掩码一致性和可见度均为无单位且含边界的阈值；半径单位为像素。
+[person.assignment]
+pose_match_min_iou = 0.30  # 姿态匹配所需最小边界框 IoU（含边界）
+pose_match_min_mask_agreement = 0.60  # 姿态匹配所需最小掩码一致性（含边界）
+pose_match_mask_weight = 0.70  # 姿态匹配中掩码一致性的权重
+pose_match_iou_weight = 0.30  # 姿态匹配中边界框 IoU 的权重
+pose_keypoint_visible_threshold = 0.50  # 判定关键点可见的置信度阈值（含边界）
+pose_mask_sample_radius_min_px = 1  # 姿态掩码采样最小半径（像素，含边界）
+pose_mask_sample_radius_ratio = 0.01  # 姿态掩码采样半径相对尺寸比例（含边界）
+reid_duplicate_bbox_iou = 0.70  # ReID 重复目标的边界框 IoU 阈值（含边界）
+reid_duplicate_mask_iou = 0.70  # ReID 重复目标的掩码 IoU 阈值（含边界）
+
+# 裁剪边距为比例或像素；BGR 通道为 0 至 255 的含边界整数。
+[person.crop]
+margin_ratio = 0.05  # 人体裁剪框外扩边距比例（含边界）
+support_margin_ratio = 0.05  # 支撑区域外扩边距比例（含边界）
+support_min_margin_px = 2  # 支撑区域最小外扩边距（像素，含边界）
+border_bgr = [104, 116, 124]  # 裁剪边界填充颜色（BGR 三通道字节值）
+support_visible_threshold = 0.50  # 支撑区域判为可见的阈值（含边界）
+upright_dead_zone_degrees = 8.0  # 判定正立时的角度死区（度，含边界）
+
+# 可见度和轴线比例为含边界的最小值；链路分歧角单位为度。
+[person.pose_geometry]
+torso_visible_threshold = 0.50  # 躯干判为可见的置信度阈值（含边界）
+torso_min_axis_diagonal_ratio = 0.10  # 躯干主轴最小对角线比例（含边界）
+torso_max_chain_disagreement_degrees = 30.0  # 躯干链路允许的最大角度分歧（度，含边界）
+
+[person.orientation]
+side_span_ratio = 0.25  # 判定人体侧向的横向跨度比例阈值（含边界）
+
+# 分数为含边界的最小值；分数间隔必须严格为正。
+[person.quality.general]
+recognition_min_score = 5.0  # 人体识别所需最低质量分数（含边界）
+enroll_min_score = 7.0  # 人体入库所需最低质量分数（含边界）
+max_mask_pixels = 12000  # 质量评分使用的最大掩码像素数（含边界）
+score_max = 10.0  # 人体质量评分满分
+recognition_score_gap = 0.01  # 识别与入库分数间隔（严格大于 0）
+pose_weight = 0.55  # 姿态质量在总分中的权重
+mask_weight = 0.30  # 掩码质量在总分中的权重
+crop_weight = 0.15  # 裁剪质量在总分中的权重
+
+# 外来区域比例按告警、封顶和拒绝阈值分级，均为无单位且含边界。
+[person.quality.crop]
+foreign_diagnostic_ratio = 0.01  # 记录外来区域诊断信息的比例阈值（含边界）
+foreign_diagnostic_min_pixels = 64  # 记录外来区域诊断信息的最小像素数（含边界）
+foreign_cap_ratio = 0.10  # 外来区域触发质量封顶的比例阈值（含边界）
+foreign_reject_ratio = 0.30  # 外来区域触发拒绝的比例阈值（含边界）
+foreign_core_cap_ratio = 0.05  # 外来核心区域触发质量封顶的比例阈值（含边界）
+foreign_core_reject_ratio = 0.20  # 外来核心区域触发拒绝的比例阈值（含边界）
+foreign_core_width_ratio = 0.70  # 外来核心区域的宽度比例阈值（含边界）
+foreign_edge_dominant_ratio = 0.80  # 外来区域由边缘主导的比例阈值（含边界）
+
+# 比例均为无单位且含边界；尺寸和计数为像素或个数。
+[person.quality.edge]
+mask_edge_cap_count = 2  # 掩码触边时质量封顶的边数（含边界）
+mask_edge_cap_ratio = 0.20  # 掩码触边时质量封顶的边缘占比（含边界）
+mask_edge_reject_count = 3  # 掩码触边时拒绝的边数（含边界）
+mask_edge_reject_ratio = 0.40  # 掩码触边时拒绝的边缘占比（含边界）
+bbox_overflow_cap_ratio = 0.20  # 边界框越界时质量封顶的比例（含边界）
+bbox_overflow_reject_ratio = 0.50  # 边界框越界时拒绝的比例（含边界）
+truncated_edge_reject_count = 3  # 被截断时拒绝的触边数量（含边界）
+half_upper_gallery_min_visible_keypoints = 11  # 半身上半部分入库所需最少可见关键点数（含边界）
+min_bbox_width_px = 24  # 人体边界框最小宽度（像素，含边界）
+min_bbox_height_px = 48  # 人体边界框最小高度（像素，含边界）
+min_bbox_image_ratio = 0.002  # 人体边界框最小图像面积比例（严格小于最大比例）
+max_bbox_image_ratio = 0.85  # 人体边界框最大图像面积比例（严格大于最小比例）
+min_bbox_aspect_ratio = 0.8  # 人体边界框最小宽高比（严格小于最大比例）
+max_bbox_aspect_ratio = 5.0  # 人体边界框最大宽高比（严格大于最小比例）
+other_person_overlap_cap_ratio = 0.15  # 与其他人体重叠时质量封顶的比例（含边界）
+other_person_overlap_reject_ratio = 0.40  # 与其他人体重叠时拒绝的比例（含边界）
+mask_bbox_cap_ratio = 0.25  # 掩码与边界框偏离时质量封顶的比例（含边界）
+mask_bbox_reject_ratio = 0.12  # 掩码与边界框偏离时拒绝的比例（含边界）
+largest_component_min_ratio = 0.55  # 最大连通域所需最小占比（含边界）
+large_component_min_pixels = 64  # 认定大连通域的最小像素数（含边界）
+large_component_ratio = 0.12  # 认定大连通域的最小面积比例（含边界）
+fragmented_component_count = 2  # 判定掩码碎片化的连通域数量（含边界）
+image_edge_margin_min_px = 8  # 图像边缘最小安全边距（像素，含边界）
+image_edge_margin_ratio = 0.02  # 图像边缘最小安全边距比例（含边界）
+mask_bbox_touch_min_pixels = 3  # 掩码接触边界框所需最小像素数（含边界）
+mask_bbox_touch_ratio = 0.01  # 掩码接触边界框所需最小比例（含边界）
+mask_image_band_min_px = 1  # 图像边缘检测带的最小宽度（像素，含边界）
+mask_image_band_ratio = 0.002  # 图像边缘检测带的宽度比例（含边界）
+mask_image_touch_min_pixels = 3  # 掩码接触图像边缘所需最小像素数（含边界）
+mask_image_touch_ratio = 0.002  # 掩码接触图像边缘所需最小比例（含边界）
+
+# 可见度与一致性为含边界的最小值；五项子分权重之和等于总分满分。
+[person.quality.pose]
+visible_threshold = 0.50  # 关键点判为可见的置信度阈值（含边界）
+min_visible_keypoints = 6  # 人体质量合格所需最少可见关键点数（含边界）
+min_torso_keypoints = 2  # 人体质量合格所需最少躯干关键点数（含边界）
+min_bbox_agreement = 0.70  # 姿态与边界框所需最小一致性（含边界）
+min_mask_agreement = 0.60  # 姿态与掩码所需最小一致性（含边界）
+min_vertical_span_ratio = 0.35  # 最小垂直跨度比例（含边界）
+full_vertical_span_ratio = 0.65  # 认定完整垂直跨度的比例（含边界）
+visible_score_weight = 5.0  # 可见关键点质量子分权重
+torso_score_weight = 2.0  # 躯干关键点质量子分权重
+lower_score_weight = 1.0  # 下半身关键点质量子分权重
+shoulder_hip_score_weight = 1.0  # 肩胯关系质量子分权重
+vertical_span_score_weight = 1.0  # 垂直跨度质量子分权重
+
+# 像素阈值为含边界；拒绝阈值不得宽松于封顶阈值。
+[person.quality.visual]
+min_foreground_pixels = 256  # 进行视觉质量评估所需最少前景像素数（含边界）
+mask_erosion_kernel = 7  # 掩码腐蚀核尺寸（像素，必须为正奇数）
+mask_erosion_iterations = 1  # 掩码腐蚀迭代次数（含边界）
+laplacian_reject_threshold = 10.0  # 拉普拉斯清晰度拒绝阈值（含边界）
+laplacian_cap_threshold = 20.0  # 拉普拉斯清晰度封顶阈值（含边界）
+black_clip_threshold = 5  # 判定黑色裁剪的像素值阈值（0-255，含边界）
+dark_threshold = 20  # 判定暗部的像素值阈值（0-255，含边界）
+white_clip_threshold = 250  # 判定白色裁剪的像素值阈值（0-255，含边界）
+bright_threshold = 235  # 判定亮部的像素值阈值（0-255，含边界）
+exposure_reject_ratio = 0.80  # 曝光异常触发拒绝的比例阈值（含边界）
+exposure_cap_ratio = 0.70  # 曝光异常触发质量封顶的比例阈值（含边界）
+underexposed_reject_p95 = 20.0  # 欠曝拒绝时第 95 百分位亮度上限（含边界）
+underexposed_cap_p90 = 40.0  # 欠曝封顶时第 90 百分位亮度上限（含边界）
+overexposed_reject_p5 = 245.0  # 过曝拒绝时第 5 百分位亮度下限（含边界）
+overexposed_cap_p10 = 220.0  # 过曝封顶时第 10 百分位亮度下限（含边界）
+contrast_reject_threshold = 8.0  # 对比度触发拒绝的阈值（含边界）
+contrast_cap_threshold = 20.0  # 对比度触发质量封顶的阈值（含边界）
+
+# 覆盖率与可见度为含边界的最小值，边距为无单位比例。
+[person_face.ownership]
+mask_min_coverage = 0.50  # 人脸归属人体所需最小掩码覆盖率（含边界）
+pose_visible_threshold = 0.50  # 人脸归属人体所需姿态可见度阈值（含边界）
+head_bbox_margin_ratio = 0.25  # 人头边界框外扩边距比例（含边界）
+
+# 裁剪倍率无单位；宽度单位为像素；姿态为绝对角度。
+[person_face.binding]
+crop_scale_factor = 2.0  # 人体-人脸绑定时的人脸裁剪倍率（无单位，>= 1）
+min_face_width_px = 20  # 人体-人脸绑定所需最小人脸宽度（像素，含边界）
+laplacian_threshold = 12.0  # 人体-人脸绑定的拉普拉斯清晰度阈值（含边界）
+max_pose_abs_degrees = 65.0  # 人体-人脸绑定允许的最大绝对姿态角（度，含边界）
+geometry_std_ratio_threshold = 0.65  # 人体-人脸绑定的几何标准差比例阈值（含边界）
+feature_norm_threshold = 0.20  # 人体-人脸绑定的特征范数阈值（含边界）
+quality_min_score = 1.5  # 人体-人脸绑定所需最低质量分数（含边界）
+
+# 身体相似度均为无单位且含边界的阈值。
+[reid.body]
+same_body_threshold = 0.56  # 同一人体判定的相似度阈值（含边界）
+enrollable_cross_body_threshold = 0.53  # 跨人体入库判定的相似度阈值（含边界）
+other_cross_body_threshold = 0.55  # 其他跨人体判定的相似度阈值（含边界）
+
+# 分类边距和分数均为无单位；天数与 top-k 为正整数。
+[reid.classification]
+class_top_k = 3  # ReID 分类保留的前 k 个候选数（正整数）
+face_class_margin = 0.0  # 人脸分类所需的最小分数边距（含边界）
+body_class_margin = 0.08  # 人体分类所需的最小分数边距（含边界）
+body_local_top1 = 0.70  # 本地人体分类首选分数阈值（含边界）
+body_cross_device_top1 = 0.74  # 跨设备人体分类首选分数阈值（含边界）
+body_local_mean = 0.66  # 本地人体分类平均分阈值（含边界）
+body_cross_device_mean = 0.70  # 跨设备人体分类平均分阈值（含边界）
+unique_anchor_cross_device_top1 = 0.76  # 跨设备唯一锚点首选分数阈值（含边界）
+unique_anchor_raw_margin = 0.15  # 唯一锚点原始分数边距阈值（含边界）
+query_window_days = 7  # ReID 查询时间窗口（天，正整数）
+best_score_weight = 0.60  # 最佳匹配分数在分类中的权重
+mean_score_weight = 0.40  # 平均匹配分数在分类中的权重
+
+# 原型数量为正整数；相似度阈值均为无单位且含边界。
+[reid.prototype]
+max_per_reid = 24  # 每个 ReID 保留的最大原型数（含边界）
+max_per_domain = 5  # 每个域保留的最大原型数（含边界）
+duplicate_threshold = 0.95  # 判定原型重复的相似度阈值（含边界）
+class_floor = 0.60  # 原型分类可接受的最低分数（含边界）
+replace_redundancy_floor = 0.90  # 替换冗余原型所需最低相似度（含边界）
