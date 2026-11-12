@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9Z" fill="#ffd177"/></marker></defs>
+<rect width="1600" height="900" fill="#0b141b"/>
+<text x="60" y="57" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="22" font-weight="500">VISIONFLOW / GPU VIDEO DEMO</text>
+<text x="60" y="138" fill="#e9f5f2" font-family="Noto Sans SC,sans-serif" font-size="48" font-weight="500">原有系统架构：消息到分析结果</text>
+<text x="60" y="191" fill="#ffd177" font-family="Noto Sans SC,sans-serif" font-size="26" font-weight="500">架构说明图；本轮视频演示不代表 Kafka / S3 / Worker / Triton / Milvus 已整体运行</text>
+<rect x="60" y="285" width="220" height="190" rx="18" fill="#142630" stroke="#ffd177" stroke-width="2"/>
+<text x="82" y="334" fill="#ffd177" font-family="Noto Sans SC,sans-serif" font-size="29" font-weight="500">01 Kafka</text>
+<text x="82" y="392" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">关键帧消息</text>
+<text x="82" y="433" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">事件入口</text>
+<path d="M285 380 L300 380" stroke="#ffd177" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="310" y="285" width="220" height="190" rx="18" fill="#142630" stroke="#ffd177" stroke-width="2"/>
+<text x="332" y="334" fill="#ffd177" font-family="Noto Sans SC,sans-serif" font-size="29" font-weight="500">02 S3</text>
+<text x="332" y="392" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">读取图像</text>
+<text x="332" y="433" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">对象存储</text>
+<path d="M535 380 L550 380" stroke="#ffd177" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="560" y="285" width="220" height="190" rx="18" fill="#142630" stroke="#ffd177" stroke-width="2"/>
+<text x="582" y="334" fill="#ffd177" font-family="Noto Sans SC,sans-serif" font-size="29" font-weight="500">03 Worker</text>
+<text x="582" y="392" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">视觉编排</text>
+<text x="582" y="433" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">并发与背压</text>
+<path d="M785 380 L800 380" stroke="#ffd177" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="810" y="285" width="220" height="190" rx="18" fill="#142630" stroke="#ffd177" stroke-width="2"/>
+<text x="832" y="334" fill="#ffd177" font-family="Noto Sans SC,sans-serif" font-size="29" font-weight="500">04 Triton</text>
+<text x="832" y="392" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">GPU 模型</text>
+<text x="832" y="433" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">推理服务</text>
+<path d="M1035 380 L1050 380" stroke="#ffd177" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="1060" y="285" width="220" height="190" rx="18" fill="#142630" stroke="#ffd177" stroke-width="2"/>
+<text x="1082" y="334" fill="#ffd177" font-family="Noto Sans SC,sans-serif" font-size="29" font-weight="500">05 Milvus</text>
+<text x="1082" y="392" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">特征向量</text>
+<text x="1082" y="433" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">检索与入库</text>
+<path d="M1285 380 L1300 380" stroke="#ffd177" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="1310" y="285" width="230" height="190" rx="18" fill="#142630" stroke="#ffd177" stroke-width="2"/>
+<text x="1332" y="334" fill="#ffd177" font-family="Noto Sans SC,sans-serif" font-size="29" font-weight="500">06 结果</text>
+<text x="1332" y="392" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">Kafka 输出</text>
+<text x="1332" y="433" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">识别元数据</text>
+<text x="60" y="765" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">顺序用于说明主要职责；对象读写、推理与检索在原代码中由 Worker 编排。</text>
+<text x="60" y="827" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">这是原有架构示意，不是本轮实跑证据；完整系统联调状态以各组件日志为准。</text>
+</svg>

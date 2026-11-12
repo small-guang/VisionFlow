@@ -1,0 +1,199 @@
+{
+  "schema_version": 2,
+  "prepared_at": "2026-11-12T17:25:45+08:00",
+  "purpose": "Input for a face-enrollment / same-person confirmation / different-person rejection demonstration; not recognition output.",
+  "source_a": {
+    "label": "Source A",
+    "title": "NASA Astronaut Candidate Marcos Berrios — Spanish Language interview (2021)",
+    "nasa_id": "jsc2021m000284_NASA_Astronaut_Candidate_Marcos_Berrios - Spanish Language",
+    "publisher": "NASA / Johnson Space Center (JSC)",
+    "individual_creator": "Not named in NASA API metadata; credit NASA/JSC.",
+    "source_created": "2021-12-06",
+    "record_url": "https://images.nasa.gov/details/jsc2021m000284_NASA_Astronaut_Candidate_Marcos_Berrios%20-%20Spanish%20Language",
+    "collection_url": "https://images-assets.nasa.gov/video/jsc2021m000284_NASA_Astronaut_Candidate_Marcos_Berrios%20-%20Spanish%20Language/collection.json",
+    "metadata_url": "https://images-assets.nasa.gov/video/jsc2021m000284_NASA_Astronaut_Candidate_Marcos_Berrios%20-%20Spanish%20Language/metadata.json",
+    "source_video_url": "https://images-assets.nasa.gov/video/jsc2021m000284_NASA_Astronaut_Candidate_Marcos_Berrios%20-%20Spanish%20Language/jsc2021m000284_NASA_Astronaut_Candidate_Marcos_Berrios%20-%20Spanish%20Language~medium.mp4",
+    "license": {
+      "basis": "NASA-produced informational media. NASA guidelines state its media generally are not subject to copyright in the United States. This is not a CC license.",
+      "official_guidelines": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "third_party_notice_review": "NASA/JSC API metadata identifies this as an astronaut-candidate interview; no separate third-party copyright or music credit was found in that metadata. Audio is removed.",
+      "conditions": [
+        "Credit NASA/JSC as source.",
+        "Do not imply NASA or the featured person endorses this project.",
+        "NASA insignia, trademarks, privacy and publicity rights are separate from copyright; do not repurpose this as a product endorsement or commercial advertisement.",
+        "Third-party material, if separately identified, retains its own rights."
+      ],
+      "project_relicensing": "The video is not relicensed under the repository Apache-2.0 license."
+    },
+    "source_download": {
+      "cached_byte_range_inclusive": [
+        0,
+        14999999
+      ],
+      "cached_bytes": 15000000,
+      "cached_prefix_sha256": "b5ef57a3284ec01bafd933a9877e4ecdaa64ee4d4ec7ca83c69ffcb99a6c652f",
+      "complete_download": false,
+      "full_remote_object_bytes_from_head": 111991280,
+      "source_encoding": "1280x720, H.264 Main, yuv420p, 30 fps (NASA medium derivative).",
+      "note": "Only the cached prefix is hashed; no full-original checksum is claimed. Cache files are excluded from Git."
+    },
+    "edit": {
+      "source_start_seconds": 20,
+      "source_end_seconds_exclusive": 35,
+      "duration_seconds": 15,
+      "operations": [
+        "Select one continuous 15-second interview segment.",
+        "Downscale 1280x720 to 854x480.",
+        "Encode H.264 yuv420p MP4 with faststart.",
+        "Remove audio."
+      ],
+      "no_synthetic_motion": true,
+      "no_generated_boxes_in_source": true,
+      "selection_note": "Selected after inspecting source frames; excludes the source film question/title cards near 12-16s and 40s."
+    },
+    "original_excerpt_seconds": [
+      20,
+      35
+    ],
+    "intermediate_clip": {
+      "cache_only": true,
+      "sha256": "76b18b52d005381bcc19276c2ea8fee19df965840d551c95a2f99ce75bad4759",
+      "bytes": 700733,
+      "width": 854,
+      "height": 480,
+      "fps": 30.0,
+      "decoded_frames": 450,
+      "duration_seconds": 15.0,
+      "audio": false,
+      "full_decode_exit_code": 0,
+      "mean_adjacent_frame_pixel_difference": 0.296971,
+      "max_adjacent_frame_pixel_difference": 1.358507
+    }
+  },
+  "source_b": {
+    "label": "Source B",
+    "publisher": "NASA / Johnson Space Center (JSC)",
+    "title": "NASA Astronaut Candidate Christina Birch interview (2021)",
+    "nasa_id": "jsc2021m000272_NASA_Astronaut_Candidate_Christina_Birch",
+    "individual_creator": "Not named in NASA API metadata; credit NASA/JSC.",
+    "source_created": "2021-12-06",
+    "record_url": "https://images.nasa.gov/details/jsc2021m000272_NASA_Astronaut_Candidate_Christina_Birch",
+    "source_video_url": "https://images-assets.nasa.gov/video/jsc2021m000272_NASA_Astronaut_Candidate_Christina_Birch/jsc2021m000272_NASA_Astronaut_Candidate_Christina_Birch~medium.mp4",
+    "collection_url": "https://images-assets.nasa.gov/video/jsc2021m000272_NASA_Astronaut_Candidate_Christina_Birch/collection.json",
+    "metadata_url": "https://images-assets.nasa.gov/video/jsc2021m000272_NASA_Astronaut_Candidate_Christina_Birch/metadata.json",
+    "original_excerpt_seconds": [
+      30,
+      45
+    ],
+    "cache": {
+      "byte_range_inclusive": [
+        0,
+        24999999
+      ],
+      "complete_original": false,
+      "sha256_of_prefix_only": "7cf8885031b46c6a48fe966a2721ba34152f3dfda258f64eb5623396c4a1cf29"
+    },
+    "intermediate_clip": {
+      "cache_only": true,
+      "sha256": "0a6e00e9bf168cda85eb26db391a101857cbd426b2aa5547b7c566669ea98209",
+      "bytes": 1282651,
+      "width": 854,
+      "height": 480,
+      "fps": 30.0,
+      "decoded_frames": 450,
+      "duration_seconds": 15.0,
+      "audio": false
+    }
+  },
+  "license": {
+    "basis": "NASA-produced informational media: generally not subject to US copyright per NASA guidelines; not a CC license.",
+    "official_guidelines": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "credit": "NASA / Johnson Space Center",
+    "conditions": [
+      "NASA and featured people do not endorse this project.",
+      "NASA insignia, trademarks and publicity/privacy rights remain separate; not for product endorsement or commercial advertisements.",
+      "No third-party copyright or music credit found in reviewed NASA metadata; audio removed from both excerpts.",
+      "Video keeps NASA media terms; repository Apache-2.0 does not relicense it."
+    ]
+  },
+  "edit": {
+    "format": "A(5s) / B(5s) / A(5s)",
+    "explicitly_edited": true,
+    "not_natural_camera_transition": true,
+    "static_slides": false,
+    "synthetic_motion": false,
+    "source_labels_burned_in": true,
+    "identity_predictions_burned_in": false,
+    "segments": [
+      {
+        "frames": [
+          0,
+          149
+        ],
+        "timeline_seconds": [
+          0,
+          5
+        ],
+        "source": "A",
+        "source_original_seconds": [
+          20,
+          25
+        ]
+      },
+      {
+        "frames": [
+          150,
+          299
+        ],
+        "timeline_seconds": [
+          5,
+          10
+        ],
+        "source": "B",
+        "source_original_seconds": [
+          30,
+          35
+        ]
+      },
+      {
+        "frames": [
+          300,
+          449
+        ],
+        "timeline_seconds": [
+          10,
+          15
+        ],
+        "source": "A",
+        "source_original_seconds": [
+          25,
+          30
+        ]
+      }
+    ]
+  },
+  "evaluation_policy": {
+    "identities": "Use anonymous labels such as Demo-P001; real names are attribution metadata only.",
+    "expectations": [
+      "Enroll Source A from its first real frame.",
+      "Confirm Source A only when actual face similarity and association checks pass.",
+      "Source B must not be positively matched to the enrolled A identity; leave unknown unless separately enrolled.",
+      "Reappearance of A is a face-confirmation test, not natural cross-camera tracking.",
+      "No face means only a body track / pending confirmation; a pose box is not identity evidence."
+    ],
+    "reference_frames": "Use frame 0 of this final video for Source A and frame 150 for Source B; no separate hand-picked gallery is required."
+  },
+  "output": {
+    "path": "identity-source-clip.mp4",
+    "sha256": "1355e8e6a5f3d37c5b0fbbeda47a424f8ec1cd8bae7f076dc334f7a529139bb3",
+    "bytes": 976288,
+    "width": 854,
+    "height": 480,
+    "fps": 30.0,
+    "decoded_frames": 450,
+    "duration_seconds": 15.0,
+    "audio": false,
+    "full_decode_exit_code": 0
+  },
+  "reproduce": "python -B demo/gpu/assets/prepare_identity_source.py --font /path/to/NotoSansSC.ttf"
+}

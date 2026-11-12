@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VisionFlow · 人脸与人形身份确认</title>
+<style>
+:root{color-scheme:dark;--bg:#0b141b;--panel:#142630;--text:#e9f5f2;--muted:#a1b8c2;--green:#55dfbb;--amber:#ffd177}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:18px/1.8 "Noto Sans SC",sans-serif}main{max-width:1240px;margin:auto;padding:48px 24px 80px}small,.muted{color:var(--muted)}h1{font-size:clamp(34px,5vw,58px);line-height:1.3;margin:14px 0 24px}h2{font-size:28px;margin:44px 0 14px}a{color:var(--green)}.notice{padding:18px 24px;background:var(--panel);border-left:4px solid var(--green);border-radius:8px}.tag{display:inline-block;border:1px solid #29424d;border-radius:99px;padding:4px 16px;color:var(--green);margin:0 8px 12px 0}video,img{display:block;width:100%;border:1px solid #29424d;border-radius:14px;margin:18px 0;background:#000}video{max-height:680px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:22px 0}.card{background:var(--panel);padding:20px;border:1px solid #29424d;border-radius:14px}.card strong{color:var(--green)}.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}nav{display:flex;gap:10px 24px;flex-wrap:wrap}footer{margin-top:44px;color:var(--muted);font-size:15px}code{overflow-wrap:anywhere}table{width:100%;border-collapse:collapse;margin:20px 0;font-size:16px}th,td{text-align:left;padding:12px;border-bottom:1px solid #29424d}th{color:var(--green)}.table-wrap{overflow-x:auto}@media(max-width:760px){.grid,.two{grid-template-columns:1fr}}
+</style></head><body><main>
+<small>VISIONFLOW / FACE + PERSON IDENTITY</small>
+<h1>人脸确认，再关联人形。</h1>
+<span class="tag">已实际运行</span><span class="tag">GPU YuNet + SFace + OSNet</span><span class="tag">A → B → A</span>
+<div class="notice"><strong>真实身份确认视频：</strong>GPU 人脸检测、五点对齐、人脸特征比较与登记，确认后关联人体框；GPU OSNet-AIN 提供独立人形特征候选。右侧 face/body 图库由本次运行实际登记形成，未预置人物身份。</div>
+<p class="muted">运行 <code>gpu-20261112-175719-f27110</code> · RTX 3090 · 225 个输出帧 / 15fps / 15 秒。原视频30fps、stride=2；每个输出帧均有实际模型结果。匿名 Demo-P001 / Demo-P002 不是真人姓名识别。</p>
+
+<h2>实际人脸与人形身份结果</h2>
+<video id="identity-result" controls preload="metadata" poster="identity-run-output/preview-224.png"><source src="identity-run-output/annotated.mp4" type="video/mp4"></video>
+<p id="result-status" class="muted">原图、实际识别叠加和本次登记图库并排连续播放。Source A/B 只是素材分段标签；身份标签来自实际推理与确认规则。</p>
+<nav><a href="identity-run-output/annotated.mp4" download>下载实际身份视频</a><a href="identity-run-output/manifest.json">GPU执行与运行证据</a><a href="identity-run-output/events.jsonl">逐帧身份 / 相似度</a><a href="identity-run-output/model-manifest.json">模型来源、权重及许可</a><a href="assets/identity-source-manifest.json">素材来源与分段清单</a></nav>
+
+<div class="grid">
+<div class="card"><strong>0–5 秒 · A / Demo-P001</strong><p>首帧实际登记 P001，之后74帧经人脸确认；本段75个主人体结果均为 P001。</p></div>
+<div class="card"><strong>5–10 秒 · B / Demo-P002</strong><p>B 首次与 A 的 face cosine 为0.1717，低于本次阈值0.5，未误认成P001；实际登记为P002，主人体75帧均为P002。</p></div>
+<div class="card"><strong>10–15 秒 · A / Demo-P001</strong><p>A 再出现后75帧均确认为原P001；face cosine 为0.8355–0.9559，高于本次阈值0.5。</p></div>
+</div>
+<p class="muted">B段4帧另有接近重叠的额外人体检测框；这些框无独立有效人脸，仅作为 body candidate，未确认、未新增身份。最终图库2个匿名身份。cosine是相似度，不是概率；当前阈值只用于本演示。</p>
+
+<h2>GPU 调用与真实状态</h2>
+<div class="table-wrap"><table><thead><tr><th>模型 / 环节</th><th>本次实际记录</th><th>含义</th></tr></thead><tbody>
+<tr><td>YOLO26m pose / TensorRT</td><td>原生成功推理计数 +225</td><td>人物框与姿态</td></tr>
+<tr><td>YuNet / GPU 实例</td><td>+225</td><td>人脸框与五点</td></tr>
+<tr><td>SFace / GPU 实例</td><td>+225</td><td>人脸特征，最终身份确认</td></tr>
+<tr><td>OSNet-AIN / GPU 实例</td><td>+229</td><td>人体独立特征，提供候选；多4次对应额外框</td></tr>
+</tbody></table></div>
+<p class="muted">服务容器内的设备查询确认 RTX 3090，配置与调用计数见运行清单。模型清单记录来源与图契约；GPU运行证据以本次运行清单为准。预处理、对齐、比较和绘制仍有CPU步骤，不据此宣称全部算子都在GPU或无运行时回退。</p>
+
+<h2>同次运行的真实结果帧</h2>
+<p class="muted">下面是 A 返回时的实际视频画面；右侧保留本次登记的 P001 / P002 人脸与人形原始裁剪。</p>
+<a href="identity-run-output/preview-224.png"><img src="identity-run-output/preview-224.png" alt="A再次出现后实际确认Demo-P001，旁边为本次真实登记的两个匿名人脸和人形图库"></a>
+
+<h2>15 秒身份验证输入</h2>
+<p class="muted">两段 NASA 官方访谈的动态剪辑：同一人 A → 不同人 B → A 再出现。每段常驻人工剪辑标识，不能据此宣称自然跨镜头跟踪。</p>
+<video controls preload="metadata"><source src="assets/identity-source-clip.mp4" type="video/mp4"></video>
+<nav><a href="assets/identity-source-clip.mp4" download>下载身份输入片段</a><a href="assets/identity-source-manifest.json">来源、剪辑和哈希</a><a href="MEDIA.md">素材与许可说明</a><a href="README.md">复现步骤</a></nav>
+
+<h2>三个阶段的实际登记与确认</h2>
+<div class="grid"><section><h3>A · 首次登记</h3><a href="identity-run-output/preview-000.png"><img src="identity-run-output/preview-000.png" alt="同次运行首帧实际登记Demo-P001及人脸人形裁剪"></a></section>
+<section><h3>B · 不同身份</h3><a href="identity-run-output/preview-112.png"><img src="identity-run-output/preview-112.png" alt="同次运行中间帧实际确认Demo-P002，图库保留两个匿名身份"></a></section>
+<section><h3>A · 原身份复核</h3><a href="identity-run-output/preview-224.png"><img src="identity-run-output/preview-224.png" alt="同次运行末帧A重新确认为Demo-P001"></a></section></div>
+
+<h2>人脸与人形的确认边界</h2>
+<img src="diagrams/identity-flow.png" alt="已运行的YuNet人脸ROI、五点对齐、GPU SFace、cosine登记确认与人体框关联；GPU OSNet提供独立人形特征候选，身份仍由人脸最终确认">
+<p>人脸特征比较通过后，才能将匿名身份空间关联到对应人形。姿态框、同一衣服或持续出现本身不足以证明身份；没有可用人脸时，只展示人形跟踪或待确认状态。</p>
+<p class="muted">OSNet-AIN独立人形特征已实际运行，但在本演示中只作候选匹配，不能独立确认身份。当前输入没有遮挡场景，也不声称已演示遮挡追踪。A/B/A为显式人工剪辑，单个公开剪辑不代表大规模准确率、自然跨镜头识别能力或生产阈值已验证。原有 Kafka、S3、Milvus 全流程也需要独立运行记录。</p>
+
+<footer>素材署名：NASA / Johnson Space Center。Source A 来自 Marcos Berrios（2021-12-06）官方访谈，Source B 来自 Christina Birch（同日）官方访谈。名字仅为版权与素材来源署名；NASA 和人物均不为项目背书。使用条件见 <a href="MEDIA.md">MEDIA.md</a>，素材不重新许可为 Apache-2.0。</footer>
+</main><script>
+const result=document.getElementById('identity-result');
+result.addEventListener('error',()=>{document.getElementById('result-status').textContent='浏览器未能加载实际身份视频，请检查文件完整性或下载MP4；本页不以输入片段或模拟结果代替身份输出。';});
+</script></body></html>

@@ -1,0 +1,11 @@
+.gitattributes text eol=lf
+demo/gpu/** text eol=lf
+core/gpu_video_pipeline.py text eol=lf
+core/identity_gallery.py text eol=lf
+core/ordered_pipeline.py text eol=lf
+tests/test_*.py text eol=lf
+*.mp4 -text
+*.png -text
+demo/gpu/assets/identity-source-manifest.json -text whitespace=cr-at-eol
+demo/gpu/identity-run-output/*.json -text whitespace=cr-at-eol
+demo/gpu/identity-run-output/*.jsonl -text whitespace=cr-at-eol

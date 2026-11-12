@@ -1,59 +1,53 @@
 # VisionFlow
 
-VisionFlow 是面向视频关键帧的异步视觉分析流水线。它从 Kafka 接收图片消息，经对象存储读取图片，调用推理服务处理人脸与人物，并将检测结果和向量元数据输出到 Kafka、向量写入 Milvus。
+面向视频关键帧的异步视觉分析工程作品，与 `visionflow-inference` 配套。主仓展示有界并发、有序结果提交、视频结果与流程；推理仓展示 Triton 多模型服务、GPU 部署和模型制品追溯。
 
-## 工作流程
+## 人脸＋人形身份确认：真实 GPU 视频
+
+[打开身份展示页](demo/gpu/index.html) · [播放／下载身份确认视频](demo/gpu/identity-run-output/annotated.mp4) · [逐帧证据](demo/gpu/identity-run-output/events.jsonl) · [模型与运行清单](demo/gpu/identity-run-output/manifest.json) · [复现](demo/gpu/README.md)
+
+![人物 A 再出现：匹配回原身份；右侧为本次实际登记的人脸与人形参考](demo/gpu/identity-run-output/preview-224.png)
+
+本次在 RTX3090 上实际运行 **YOLO26m Pose＋YuNet＋SFace＋OSNet**：人脸检测、五点对齐和特征匹配确认匿名身份，再绑定人形框；专用 OSNet 人形特征提供候选匹配。15秒素材由两段 NASA 真人访谈明确剪辑成 A→B→A，模型实际得到 **Demo-P001→Demo-P002→Demo-P001**，不是预先写入素材的身份标签，也不声称自然跨镜头跟踪。
+
+225个输出帧均经过GPU流水线；人形单独匹配不能覆盖人脸判断，无脸候选不会自动登记新身份。阈值是演示配置，不能据此宣称通用识别准确率或实名识别。来源、分段、分数、GPU推理计数与媒体摘要可核对。
+
+## 两仓与流程
+
+![原有完整系统架构示意](demo/gpu/diagrams/original-architecture.png)
+
+- **原有主流水线**：Kafka 关键帧 → 对象存储读图 → Worker → Triton GPU → 检测／特征与身份决策 → Milvus／Kafka 输出。
+- **本次实际运行的展示路径**：真实视频 → 有界帧准备 → GPU 人形／人脸／特征模型 → 人脸确认与人形候选关联 → 按输入顺序提交身份状态 → 连续 MP4 与逐帧证据。
+
+展示路径复用 `core/ordered_pipeline.py` 的并发与顺序提交机制，以及推理仓现有前处理／TensorRT／后处理四节点闭包。它不要求 Kafka、Milvus、PostgreSQL 或公司网络；架构示意图不等于这些服务已在本次视频中联调运行。
+
+## 快速复现 GPU 展示
+
+需要 NVIDIA GPU、匹配的 TensorRT engine、GPU 容器环境，以及同级目录的两个仓库。先在推理仓按其 `gpu_demo/README.md` 校验并准备模型，启动独立 GPU 服务；再按本仓[GPU 演示说明](demo/gpu/README.md)回放视频和生成浏览器可播放的结果。
 
 ```text
-Kafka 关键帧消息 → 对象存储读取 → VisionFlow 视觉分析
-                                      ├─→ VisionFlow Inference / Triton
-                                      ├─→ Milvus 向量存储与检索
-                                      └─→ Kafka 检测与识别结果
+VisionFlow/                   # GPU 身份视频客户端、有界流水线、最终示例与流程图
+visionflow-inference/         # gpu_demo/：模型校验、身份模型闭包、独立 GPU Compose
 ```
 
-- **并发与背压**：多进程视觉处理、有界队列和资源池，控制图片、推理与输出阶段的在途工作量。
-- **推理调度**：按模型组批并限制并发；支持通过 gRPC 调用符合既定契约的 Triton 模型。
-- **身份处理**：支持人脸和人物特征分析、向量检索，以及有序提交和持久化门控。
-- **运行观测**：输出阶段队列统计与链路计时，用于排查积压和吞吐瓶颈。
+服务使用独立项目与本机端口 18010／18011／18012。模型权重和 engine 不提交 Git；准备工具检查来源、摘要与许可，拒绝不匹配的模型。公开身份演示选用许可有记录的 YuNet（MIT）、SFace（Apache-2.0）、OSNet 权重（作者仓库 MIT）和 YOLO Pose（AGPL-3.0）；不加载许可受限或未核实的其他身份模型。
 
-推理服务由同一作品中的 `visionflow-inference` 仓库提供；具体的模型、硬件和许可证要求以该仓库的说明为准。
+## 可深入讲解的工程设计
 
-## 演示效果
+| 设计 | 代码与文档 | 关键取舍 |
+| --- | --- | --- |
+| 有界并行准备、有序提交 | `core/ordered_pipeline.py`、`core/gpu_video_pipeline.py` | 输出按输入帧顺序；在途帧受并发＋lookahead 窗口约束 |
+| 单 owner 与多视觉进程 | `core/multiprocess/` | 共享身份决策避免进程间身份竞态；不是高可用集群 |
+| 版本化推理契约与组批 | `core/infer/` | 检查模型版本、形状和 batch；GPU 示例同时检查 native KIND_GPU |
+| 首次向量持久化门控 | `utils/buffers/persistence_ticket.py` | 识别结果等待首份向量成功入库；不是跨 Kafka／Milvus 事务 |
+| ReID 图库防污染 | `utils/reid/prototype_policy.py` | 身份锚点、冲突和离群过滤；未把受限权重放入默认公开演示 |
 
-![CPU 人脸检测实际运行结果：原图与检测结果](demo/assets/cpu-face-result.png)
+## 原有生产 Worker
 
-这张图由仓库提供的[独立 CPU 演示](demo/README.md)实际运行后生成：客户端发送图片到 VisionFlow Inference 的轻量 HTTP 服务，由 OpenCV Haar 级联分类器检测人脸，再保存标注图和 JSON。样例照片来自 NASA，经 [scikit-image 样例](https://scikit-image.org/docs/stable/api/skimage.data.html#skimage.data.astronaut)提供。
+原有 `main.py` 与根 Compose 保留为完整多模型环境的入口。它需要 Kafka、Milvus、对象存储、指定 Triton 模型及配置中的 PostgreSQL 参数；根 Compose 只启动 Worker。运行要求见[配置说明](docs/configuration.md)和[代码架构](docs/代码架构与处理流程.md)。
 
-演示只展示人脸检测与跨仓库调用，**不启动 Kafka、Milvus、Triton 或生产 Worker**，也不代表生产模型的准确率。需要完整流水线时，请参照下面的运行要求。
+当前原有消费者仍在消息本地入队后提交 offset，异常可能丢失在途消息；不能声称至少一次或 exactly-once。GPU 视频回放入口不使用该 Kafka 消费链路。
 
-## 运行
+## 开源与来源
 
-需要 Linux 或 WSL、Docker Compose，以及可访问的 Kafka、Milvus、Triton 和对象存储。现有 Compose **只启动 VisionFlow Worker**，不包含依赖服务和模型；还需要按配置要求提供 PostgreSQL 参数。准备的 Triton 模型必须满足[模型契约](docs/代码架构与处理流程.md#81-triton-模型契约)。
-
-```bash
-cp .env.example .env
-# 编辑 .env，填写所选存储及各服务的连接信息
-docker compose up --build visionflow
-```
-
-镜像基于 Python 3.12；Compose 使用宿主机网络和命名日志卷。配置文件、依赖服务、网络和模型契约就绪后，Worker 才能处理消息。详细环境变量和运维信息见[配置与运行说明](docs/configuration.md)。
-
-> 当前消费者在消息进入本地队列后提交 Kafka offset，未等待图片处理与输出完成。进程异常可能丢失尚未处理的消息；请勿将现有行为视为至少一次处理保证。
-
-新部署默认使用 `visionflow-*-record` 输出 Topic，额外人物转正设备列表默认为空。已有部署升级时，如需继续使用旧 Topic 或指定设备，请在环境变量中明确配置对应的五个 `KAFKA_*_RECORD_TOPIC` 和 `PERSON_UPRIGHT_DEVICE_SNS`；修改 Topic 还需要同步下游消费者。Milvus 集合名称未随此次调整更改。
-
-## 文档
-
-| 文档 | 内容 |
-| --- | --- |
-| [配置与运行说明](docs/configuration.md) | 连接、算法参数、并发和运行统计 |
-| [代码架构与处理流程](docs/代码架构与处理流程.md) | 模块职责、处理顺序、模型契约和故障边界 |
-| [Kafka Topic 契约](docs/kafka_topic.md) | 输入消息、输出字段及示例 |
-| [人脸人型详细规则](docs/人脸人型详细规则.md) | 质量、身份确认和入库规则 |
-| [人型 ReID 识别流程](docs/人型ReID识别完整流程.md) | 向量查询、身份分配和集合结构 |
-| [SBS ReID 防污染机制](docs/SBS_ReID防污染机制.md) | 图库保护和排查入口 |
-| [流水线队列统计与写出隔离](docs/流水线队列统计与写出隔离.md) | 阶段指标和输出积压 |
-
-## 许可证与使用范围
-
-本仓库采用 [Apache License 2.0](LICENSE)。模型权重、第三方依赖和容器镜像可能具有各自的许可证和使用条件，需分别核查。发布前应确认项目代码及示例数据的公开授权，并移除真实设备信息、凭据和内部地址。
+项目自有代码沿用 [Apache-2.0](LICENSE)。不同演示模型分别采用 MIT、Apache-2.0 或 AGPL-3.0，保留独立许可和来源；GPU 驱动、CUDA、完整 TensorRT 与容器组件遵循各自条款，因此不把 NVIDIA 软件栈称为全栈开源。[第三方说明](THIRD_PARTY_NOTICES.md)。

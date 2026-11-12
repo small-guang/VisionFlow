@@ -16,13 +16,12 @@ scripts/
 .mypy_cache/
 .ruff_cache/
 .venv/
+.venv-portfolio/
 venv/
 *.egg-info/
 *.jpg
 *.jpeg
 *.png
-!demo/assets/astronaut.png
-!demo/assets/cpu-face-result.png
 *.mp4
 datasets
 tools
@@ -30,4 +29,10 @@ tools
 CLAUDE.md
 .claude/
 performance_tools/results/
-demo/run-output/
+demo/gpu/assets/.cache/
+!demo/gpu/diagrams/*.png
+!demo/gpu/assets/identity-source-clip.mp4
+!demo/gpu/identity-run-output/annotated.mp4
+!demo/gpu/identity-run-output/preview-000.png
+!demo/gpu/identity-run-output/preview-112.png
+!demo/gpu/identity-run-output/preview-224.png

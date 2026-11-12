@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9Z" fill="#55dfbb"/></marker></defs>
+<rect width="1600" height="900" fill="#0b141b"/>
+<text x="60" y="57" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="22" font-weight="500">VISIONFLOW / GPU VIDEO DEMO</text>
+<text x="60" y="138" fill="#e9f5f2" font-family="Noto Sans SC,sans-serif" font-size="48" font-weight="500">已运行：GPU 人脸确认与人形候选匹配</text>
+<text x="60" y="191" fill="#55dfbb" font-family="Noto Sans SC,sans-serif" font-size="26" font-weight="500">YuNet / SFace / OSNet-AIN 均已实际调用；最终身份由人脸确认，再关联人形</text>
+<rect x="60" y="285" width="260" height="190" rx="18" fill="#142630" stroke="#55dfbb" stroke-width="2"/>
+<text x="82" y="334" fill="#55dfbb" font-family="Noto Sans SC,sans-serif" font-size="29" font-weight="500">01 人脸 ROI</text>
+<text x="82" y="392" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">GPU YuNet 检测</text>
+<text x="82" y="433" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">人脸框 + 5点</text>
+<path d="M325 380 L355 380" stroke="#55dfbb" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="365" y="285" width="260" height="190" rx="18" fill="#142630" stroke="#55dfbb" stroke-width="2"/>
+<text x="387" y="334" fill="#55dfbb" font-family="Noto Sans SC,sans-serif" font-size="29" font-weight="500">02 人脸对齐</text>
+<text x="387" y="392" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">5点仿射变换</text>
+<text x="387" y="433" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">112×112 人脸</text>
+<path d="M630 380 L660 380" stroke="#55dfbb" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="670" y="285" width="260" height="190" rx="18" fill="#142630" stroke="#55dfbb" stroke-width="2"/>
+<text x="692" y="334" fill="#55dfbb" font-family="Noto Sans SC,sans-serif" font-size="29" font-weight="500">03 GPU SFace</text>
+<text x="692" y="392" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">真实特征向量</text>
+<text x="692" y="433" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">保留执行证据</text>
+<path d="M935 380 L965 380" stroke="#55dfbb" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="975" y="285" width="260" height="190" rx="18" fill="#142630" stroke="#55dfbb" stroke-width="2"/>
+<text x="997" y="334" fill="#55dfbb" font-family="Noto Sans SC,sans-serif" font-size="29" font-weight="500">04 比较 / 登记</text>
+<text x="997" y="392" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">cosine 与阈值</text>
+<text x="997" y="433" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">匿名身份确认</text>
+<path d="M1240 380 L1270 380" stroke="#55dfbb" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="1280" y="285" width="260" height="190" rx="18" fill="#142630" stroke="#55dfbb" stroke-width="2"/>
+<text x="1302" y="334" fill="#55dfbb" font-family="Noto Sans SC,sans-serif" font-size="29" font-weight="500">05 关联人形</text>
+<text x="1302" y="392" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">人脸空间绑定</text>
+<text x="1302" y="433" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">身份状态随帧输出</text>
+<rect x="60" y="535" width="1480" height="140" rx="18" fill="#142630" stroke="#ffd177" stroke-width="2"/>
+<text x="85" y="581" fill="#ffd177" font-family="Noto Sans SC,sans-serif" font-size="26" font-weight="500">已运行 GPU OSNet-AIN：专用人形特征与候选匹配；人脸负责最终身份确认。</text>
+<text x="85" y="629" fill="#ffd177" font-family="Noto Sans SC,sans-serif" font-size="26" font-weight="500">无有效人脸时只保留 body candidate / 未确认；当前样片没有遮挡，不作遮挡能力结论。</text>
+<text x="60" y="765" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">Source A / B 是剪辑来源标签；Demo-P001 / P002 来自本次实际登记和确认。</text>
+<text x="60" y="827" fill="#a1b8c2" font-family="Noto Sans SC,sans-serif" font-size="25" font-weight="500">A/B/A 是显式人工剪辑；不宣称自然跨镜头跟踪或遮挡后的 ReID 能力。</text>
+</svg>

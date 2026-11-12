@@ -1,0 +1,1083 @@
+{
+  "schema_version": 1,
+  "run_id": "gpu-20261112-175719-f27110",
+  "started_at": "2026-11-12T17:57:19.324581+08:00",
+  "client_host_gpu": "NVIDIA GeForce RTX 3090, 24576 MiB, 610.60",
+  "device_evidence_scope": "nvidia-smi is from the client host; server GPU identity must be recorded separately for remote servers.",
+  "scope": "Continuous video replay through existing Triton GPU pose ensemble; no Kafka/Milvus run is claimed.",
+  "inference_backend": {
+    "name": "yolo26m_pose_onnx",
+    "platform": "tensorrt_plan",
+    "backend": "tensorrt",
+    "runtime": "",
+    "version_policy": {
+      "latest": {
+        "num_versions": 1
+      }
+    },
+    "max_batch_size": 4,
+    "input": [
+      {
+        "name": "images",
+        "data_type": "TYPE_FP32",
+        "format": "FORMAT_NONE",
+        "dims": [
+          3,
+          -1,
+          -1
+        ],
+        "is_shape_tensor": false,
+        "allow_ragged_batch": false,
+        "optional": false,
+        "is_non_linear_format_io": false
+      }
+    ],
+    "output": [
+      {
+        "name": "output0",
+        "data_type": "TYPE_FP32",
+        "dims": [
+          -1,
+          57
+        ],
+        "label_filename": "",
+        "is_shape_tensor": false,
+        "is_non_linear_format_io": false
+      }
+    ],
+    "batch_input": [],
+    "batch_output": [],
+    "optimization": {
+      "priority": "PRIORITY_DEFAULT",
+      "input_pinned_memory": {
+        "enable": true
+      },
+      "output_pinned_memory": {
+        "enable": true
+      },
+      "gather_kernel_buffer_threshold": 0,
+      "eager_batching": false
+    },
+    "dynamic_batching": {
+      "preferred_batch_size": [
+        4
+      ],
+      "max_queue_delay_microseconds": 2000,
+      "preserve_ordering": false,
+      "priority_levels": 0,
+      "default_priority_level": 0,
+      "priority_queue_policy": {}
+    },
+    "instance_group": [
+      {
+        "name": "yolo26m_pose_onnx_0",
+        "kind": "KIND_GPU",
+        "count": 1,
+        "gpus": [
+          0
+        ],
+        "secondary_devices": [],
+        "profile": [],
+        "passive": false,
+        "host_policy": ""
+      }
+    ],
+    "default_model_filename": "model_throughput.plan",
+    "cc_model_filenames": {},
+    "metric_tags": {},
+    "parameters": {},
+    "model_warmup": []
+  },
+  "models": {
+    "ensemble": "yolo26m_pose_ensemble",
+    "native": "yolo26m_pose_onnx"
+  },
+  "source": {
+    "name": "identity-source-clip.mp4",
+    "sha256": "1355e8e6a5f3d37c5b0fbbeda47a424f8ec1cd8bae7f076dc334f7a529139bb3",
+    "fps": 30.0,
+    "stride": 2,
+    "distinct_decoded_frames": 225,
+    "media_manifest_sha256": "e3377c7cb46dbd407f03b9f40fc847ad7dfd8402e5da65abb1807b0a46b4a38e"
+  },
+  "summary": {
+    "frames": 225,
+    "elapsed_seconds": 10.205082862000381,
+    "infer_latency_ms": {
+      "p50": 58.96743899938883,
+      "p95": 100.69228720039966
+    },
+    "pipeline_metrics": {
+      "schema_version": 1,
+      "timestamp": "2026-11-12T09:57:29.530+00:00",
+      "pid": 1,
+      "session_id": "b99d6df9ee28434899e283bbfdffa146",
+      "interval_seconds": 10.205545,
+      "final": true,
+      "stages": {
+        "video_inference": {
+          "waiting": 0,
+          "active": 0,
+          "oldest_wait_ms": 0.0,
+          "oldest_active_ms": 0.0,
+          "completed": 225,
+          "failed": 0,
+          "cancelled": 0,
+          "completed_total": 225,
+          "completed_per_second": 22.047,
+          "waits_finished": 0,
+          "avg_wait_ms": 0.0,
+          "avg_active_ms": 76.546
+        },
+        "video_ordered_commit": {
+          "waiting": 0,
+          "active": 0,
+          "oldest_wait_ms": 0.0,
+          "oldest_active_ms": 0.0,
+          "completed": 0,
+          "failed": 0,
+          "cancelled": 0,
+          "completed_total": 0,
+          "completed_per_second": 0.0,
+          "waits_finished": 225,
+          "avg_wait_ms": 4.58,
+          "avg_active_ms": 0.0
+        },
+        "video_commit": {
+          "waiting": 0,
+          "active": 0,
+          "oldest_wait_ms": 0.0,
+          "oldest_active_ms": 0.0,
+          "completed": 225,
+          "failed": 0,
+          "cancelled": 0,
+          "completed_total": 225,
+          "completed_per_second": 22.047,
+          "waits_finished": 0,
+          "avg_wait_ms": 0.0,
+          "avg_active_ms": 9.307
+        }
+      },
+      "counters": {},
+      "queues": {}
+    }
+  },
+  "gpu_inference_count_delta": 225,
+  "stats_before": {
+    "model_stats": [
+      {
+        "name": "yolo26m_pose_onnx",
+        "version": "1",
+        "last_inference": 0,
+        "inference_count": 0,
+        "execution_count": 0,
+        "inference_stats": {
+          "success": {
+            "count": 0,
+            "ns": 0
+          },
+          "fail": {
+            "count": 0,
+            "ns": 0
+          },
+          "queue": {
+            "count": 0,
+            "ns": 0
+          },
+          "compute_input": {
+            "count": 0,
+            "ns": 0
+          },
+          "compute_infer": {
+            "count": 0,
+            "ns": 0
+          },
+          "compute_output": {
+            "count": 0,
+            "ns": 0
+          },
+          "cache_hit": {
+            "count": 0,
+            "ns": 0
+          },
+          "cache_miss": {
+            "count": 0,
+            "ns": 0
+          }
+        },
+        "response_stats": {},
+        "batch_stats": [],
+        "memory_usage": []
+      }
+    ]
+  },
+  "stats_after": {
+    "model_stats": [
+      {
+        "name": "yolo26m_pose_onnx",
+        "version": "1",
+        "last_inference": 1794477449489,
+        "inference_count": 225,
+        "execution_count": 224,
+        "inference_stats": {
+          "success": {
+            "count": 225,
+            "ns": 2233303033
+          },
+          "fail": {
+            "count": 0,
+            "ns": 0
+          },
+          "queue": {
+            "count": 225,
+            "ns": 638852552
+          },
+          "compute_input": {
+            "count": 225,
+            "ns": 151188458
+          },
+          "compute_infer": {
+            "count": 225,
+            "ns": 1329884963
+          },
+          "compute_output": {
+            "count": 225,
+            "ns": 84969299
+          },
+          "cache_hit": {
+            "count": 0,
+            "ns": 0
+          },
+          "cache_miss": {
+            "count": 0,
+            "ns": 0
+          }
+        },
+        "response_stats": {},
+        "batch_stats": [
+          {
+            "batch_size": 1,
+            "compute_input": {
+              "count": 223,
+              "ns": 148804586
+            },
+            "compute_infer": {
+              "count": 223,
+              "ns": 1309876003
+            },
+            "compute_output": {
+              "count": 223,
+              "ns": 84165015
+            }
+          },
+          {
+            "batch_size": 2,
+            "compute_input": {
+              "count": 1,
+              "ns": 1191936
+            },
+            "compute_infer": {
+              "count": 1,
+              "ns": 10004480
+            },
+            "compute_output": {
+              "count": 1,
+              "ns": 402142
+            }
+          }
+        ],
+        "memory_usage": []
+      }
+    ]
+  },
+  "output": {
+    "fps": 15.0,
+    "frames": 225,
+    "duration_seconds": 15.0,
+    "width": 1520,
+    "height": 458,
+    "codec": "H.264 / yuv420p / MP4, faststart"
+  },
+  "timing_scope": "Client await infer wall time includes RPC, CPU pre/postprocess and GPU execution; not GPU kernel time.",
+  "assets": {
+    "annotated.mp4": {
+      "sha256": "8e212e9696ce6124f6766bf04d40e24a9f4321646bab28354186dad700758d74",
+      "bytes": 1454018
+    },
+    "events.jsonl": {
+      "sha256": "485c31da730090ab00276e5d3caed0dabc3f0d41607ab24034dfff926433a853",
+      "bytes": 2699613
+    },
+    "model-manifest.json": {
+      "sha256": "4ed0d9f0c0ec2236dbdcd27f00dfe461fc4385c5b685667b7714c89d11ef9697",
+      "bytes": 10594
+    },
+    "preview-000.png": {
+      "sha256": "9b7cf76442e1e51c5ac8bb544321566c4af7ccb3b8b58ecfbcf9e3ba8fb99532",
+      "bytes": 529791
+    },
+    "preview-112.png": {
+      "sha256": "f115ef5283d08ca4fb9a4a04b89e6472394ced5e2cee60c35c5441820edc5c9f",
+      "bytes": 716733
+    },
+    "preview-224.png": {
+      "sha256": "0577495f5082a020b85fc6a5eb52a93d4fa79416fbe5bdc7690ecd18f2fb8b76",
+      "bytes": 671192
+    }
+  },
+  "identity": {
+    "enabled": true,
+    "gallery_size": 2,
+    "face_threshold": 0.5,
+    "body_threshold": 0.8,
+    "confirmation_policy": "face-confirmed; body-only is a candidate, never an independent identity confirmation",
+    "configs": {
+      "yunet_gpu": {
+        "name": "yunet_gpu",
+        "platform": "onnxruntime_onnx",
+        "backend": "onnxruntime",
+        "runtime": "",
+        "version_policy": {
+          "latest": {
+            "num_versions": 1
+          }
+        },
+        "max_batch_size": 0,
+        "input": [
+          {
+            "name": "input",
+            "data_type": "TYPE_FP32",
+            "format": "FORMAT_NONE",
+            "dims": [
+              1,
+              3,
+              640,
+              640
+            ],
+            "is_shape_tensor": false,
+            "allow_ragged_batch": false,
+            "optional": false,
+            "is_non_linear_format_io": false
+          }
+        ],
+        "output": [
+          {
+            "name": "cls_8",
+            "data_type": "TYPE_FP32",
+            "dims": [
+              1,
+              6400,
+              1
+            ],
+            "label_filename": "",
+            "is_shape_tensor": false,
+            "is_non_linear_format_io": false
+          },
+          {
+            "name": "cls_16",
+            "data_type": "TYPE_FP32",
+            "dims": [
+              1,
+              1600,
+              1
+            ],
+            "label_filename": "",
+            "is_shape_tensor": false,
+            "is_non_linear_format_io": false
+          },
+          {
+            "name": "cls_32",
+            "data_type": "TYPE_FP32",
+            "dims": [
+              1,
+              400,
+              1
+            ],
+            "label_filename": "",
+            "is_shape_tensor": false,
+            "is_non_linear_format_io": false
+          },
+          {
+            "name": "obj_8",
+            "data_type": "TYPE_FP32",
+            "dims": [
+              1,
+              6400,
+              1
+            ],
+            "label_filename": "",
+            "is_shape_tensor": false,
+            "is_non_linear_format_io": false
+          },
+          {
+            "name": "obj_16",
+            "data_type": "TYPE_FP32",
+            "dims": [
+              1,
+              1600,
+              1
+            ],
+            "label_filename": "",
+            "is_shape_tensor": false,
+            "is_non_linear_format_io": false
+          },
+          {
+            "name": "obj_32",
+            "data_type": "TYPE_FP32",
+            "dims": [
+              1,
+              400,
+              1
+            ],
+            "label_filename": "",
+            "is_shape_tensor": false,
+            "is_non_linear_format_io": false
+          },
+          {
+            "name": "bbox_8",
+            "data_type": "TYPE_FP32",
+            "dims": [
+              1,
+              6400,
+              4
+            ],
+            "label_filename": "",
+            "is_shape_tensor": false,
+            "is_non_linear_format_io": false
+          },
+          {
+            "name": "bbox_16",
+            "data_type": "TYPE_FP32",
+            "dims": [
+              1,
+              1600,
+              4
+            ],
+            "label_filename": "",
+            "is_shape_tensor": false,
+            "is_non_linear_format_io": false
+          },
+          {
+            "name": "bbox_32",
+            "data_type": "TYPE_FP32",
+            "dims": [
+              1,
+              400,
+              4
+            ],
+            "label_filename": "",
+            "is_shape_tensor": false,
+            "is_non_linear_format_io": false
+          },
+          {
+            "name": "kps_8",
+            "data_type": "TYPE_FP32",
+            "dims": [
+              1,
+              6400,
+              10
+            ],
+            "label_filename": "",
+            "is_shape_tensor": false,
+            "is_non_linear_format_io": false
+          },
+          {
+            "name": "kps_16",
+            "data_type": "TYPE_FP32",
+            "dims": [
+              1,
+              1600,
+              10
+            ],
+            "label_filename": "",
+            "is_shape_tensor": false,
+            "is_non_linear_format_io": false
+          },
+          {
+            "name": "kps_32",
+            "data_type": "TYPE_FP32",
+            "dims": [
+              1,
+              400,
+              10
+            ],
+            "label_filename": "",
+            "is_shape_tensor": false,
+            "is_non_linear_format_io": false
+          }
+        ],
+        "batch_input": [],
+        "batch_output": [],
+        "optimization": {
+          "priority": "PRIORITY_DEFAULT",
+          "input_pinned_memory": {
+            "enable": true
+          },
+          "output_pinned_memory": {
+            "enable": true
+          },
+          "gather_kernel_buffer_threshold": 0,
+          "eager_batching": false
+        },
+        "instance_group": [
+          {
+            "name": "yunet_gpu_0",
+            "kind": "KIND_GPU",
+            "count": 1,
+            "gpus": [
+              0
+            ],
+            "secondary_devices": [],
+            "profile": [],
+            "passive": false,
+            "host_policy": ""
+          }
+        ],
+        "default_model_filename": "model.onnx",
+        "cc_model_filenames": {},
+        "metric_tags": {},
+        "parameters": {},
+        "model_warmup": []
+      },
+      "sface_gpu": {
+        "name": "sface_gpu",
+        "platform": "onnxruntime_onnx",
+        "backend": "onnxruntime",
+        "runtime": "",
+        "version_policy": {
+          "latest": {
+            "num_versions": 1
+          }
+        },
+        "max_batch_size": 0,
+        "input": [
+          {
+            "name": "data",
+            "data_type": "TYPE_FP32",
+            "format": "FORMAT_NONE",
+            "dims": [
+              1,
+              3,
+              112,
+              112
+            ],
+            "is_shape_tensor": false,
+            "allow_ragged_batch": false,
+            "optional": false,
+            "is_non_linear_format_io": false
+          }
+        ],
+        "output": [
+          {
+            "name": "fc1",
+            "data_type": "TYPE_FP32",
+            "dims": [
+              1,
+              128
+            ],
+            "label_filename": "",
+            "is_shape_tensor": false,
+            "is_non_linear_format_io": false
+          }
+        ],
+        "batch_input": [],
+        "batch_output": [],
+        "optimization": {
+          "priority": "PRIORITY_DEFAULT",
+          "input_pinned_memory": {
+            "enable": true
+          },
+          "output_pinned_memory": {
+            "enable": true
+          },
+          "gather_kernel_buffer_threshold": 0,
+          "eager_batching": false
+        },
+        "instance_group": [
+          {
+            "name": "sface_gpu_0",
+            "kind": "KIND_GPU",
+            "count": 1,
+            "gpus": [
+              0
+            ],
+            "secondary_devices": [],
+            "profile": [],
+            "passive": false,
+            "host_policy": ""
+          }
+        ],
+        "default_model_filename": "model.onnx",
+        "cc_model_filenames": {},
+        "metric_tags": {},
+        "parameters": {},
+        "model_warmup": []
+      },
+      "osnet_gpu": {
+        "name": "osnet_gpu",
+        "platform": "onnxruntime_onnx",
+        "backend": "onnxruntime",
+        "runtime": "",
+        "version_policy": {
+          "latest": {
+            "num_versions": 1
+          }
+        },
+        "max_batch_size": 4,
+        "input": [
+          {
+            "name": "image",
+            "data_type": "TYPE_FP32",
+            "format": "FORMAT_NONE",
+            "dims": [
+              3,
+              256,
+              128
+            ],
+            "is_shape_tensor": false,
+            "allow_ragged_batch": false,
+            "optional": false,
+            "is_non_linear_format_io": false
+          }
+        ],
+        "output": [
+          {
+            "name": "embedding",
+            "data_type": "TYPE_FP32",
+            "dims": [
+              512
+            ],
+            "label_filename": "",
+            "is_shape_tensor": false,
+            "is_non_linear_format_io": false
+          }
+        ],
+        "batch_input": [],
+        "batch_output": [],
+        "optimization": {
+          "priority": "PRIORITY_DEFAULT",
+          "input_pinned_memory": {
+            "enable": true
+          },
+          "output_pinned_memory": {
+            "enable": true
+          },
+          "gather_kernel_buffer_threshold": 0,
+          "eager_batching": false
+        },
+        "dynamic_batching": {
+          "preferred_batch_size": [
+            4
+          ],
+          "max_queue_delay_microseconds": 2000,
+          "preserve_ordering": false,
+          "priority_levels": 0,
+          "default_priority_level": 0,
+          "priority_queue_policy": {}
+        },
+        "instance_group": [
+          {
+            "name": "osnet_gpu_0",
+            "kind": "KIND_GPU",
+            "count": 1,
+            "gpus": [
+              0
+            ],
+            "secondary_devices": [],
+            "profile": [],
+            "passive": false,
+            "host_policy": ""
+          }
+        ],
+        "default_model_filename": "model.onnx",
+        "cc_model_filenames": {},
+        "metric_tags": {},
+        "parameters": {},
+        "model_warmup": []
+      }
+    },
+    "gpu_inference_deltas": {
+      "yunet_gpu": 225,
+      "sface_gpu": 225,
+      "osnet_gpu": 229
+    },
+    "stats_before": {
+      "yunet_gpu": {
+        "model_stats": [
+          {
+            "name": "yunet_gpu",
+            "version": "1",
+            "last_inference": 0,
+            "inference_count": 0,
+            "execution_count": 0,
+            "inference_stats": {
+              "success": {
+                "count": 0,
+                "ns": 0
+              },
+              "fail": {
+                "count": 0,
+                "ns": 0
+              },
+              "queue": {
+                "count": 0,
+                "ns": 0
+              },
+              "compute_input": {
+                "count": 0,
+                "ns": 0
+              },
+              "compute_infer": {
+                "count": 0,
+                "ns": 0
+              },
+              "compute_output": {
+                "count": 0,
+                "ns": 0
+              },
+              "cache_hit": {
+                "count": 0,
+                "ns": 0
+              },
+              "cache_miss": {
+                "count": 0,
+                "ns": 0
+              }
+            },
+            "response_stats": {},
+            "batch_stats": [],
+            "memory_usage": []
+          }
+        ]
+      },
+      "sface_gpu": {
+        "model_stats": [
+          {
+            "name": "sface_gpu",
+            "version": "1",
+            "last_inference": 0,
+            "inference_count": 0,
+            "execution_count": 0,
+            "inference_stats": {
+              "success": {
+                "count": 0,
+                "ns": 0
+              },
+              "fail": {
+                "count": 0,
+                "ns": 0
+              },
+              "queue": {
+                "count": 0,
+                "ns": 0
+              },
+              "compute_input": {
+                "count": 0,
+                "ns": 0
+              },
+              "compute_infer": {
+                "count": 0,
+                "ns": 0
+              },
+              "compute_output": {
+                "count": 0,
+                "ns": 0
+              },
+              "cache_hit": {
+                "count": 0,
+                "ns": 0
+              },
+              "cache_miss": {
+                "count": 0,
+                "ns": 0
+              }
+            },
+            "response_stats": {},
+            "batch_stats": [],
+            "memory_usage": []
+          }
+        ]
+      },
+      "osnet_gpu": {
+        "model_stats": [
+          {
+            "name": "osnet_gpu",
+            "version": "1",
+            "last_inference": 0,
+            "inference_count": 0,
+            "execution_count": 0,
+            "inference_stats": {
+              "success": {
+                "count": 0,
+                "ns": 0
+              },
+              "fail": {
+                "count": 0,
+                "ns": 0
+              },
+              "queue": {
+                "count": 0,
+                "ns": 0
+              },
+              "compute_input": {
+                "count": 0,
+                "ns": 0
+              },
+              "compute_infer": {
+                "count": 0,
+                "ns": 0
+              },
+              "compute_output": {
+                "count": 0,
+                "ns": 0
+              },
+              "cache_hit": {
+                "count": 0,
+                "ns": 0
+              },
+              "cache_miss": {
+                "count": 0,
+                "ns": 0
+              }
+            },
+            "response_stats": {},
+            "batch_stats": [],
+            "memory_usage": []
+          }
+        ]
+      }
+    },
+    "stats_after": {
+      "yunet_gpu": {
+        "model_stats": [
+          {
+            "name": "yunet_gpu",
+            "version": "1",
+            "last_inference": 1794477449505,
+            "inference_count": 225,
+            "execution_count": 225,
+            "inference_stats": {
+              "success": {
+                "count": 225,
+                "ns": 2406248330
+              },
+              "fail": {
+                "count": 0,
+                "ns": 0
+              },
+              "queue": {
+                "count": 225,
+                "ns": 475610665
+              },
+              "compute_input": {
+                "count": 225,
+                "ns": 265172957
+              },
+              "compute_infer": {
+                "count": 225,
+                "ns": 1540081702
+              },
+              "compute_output": {
+                "count": 225,
+                "ns": 94627062
+              },
+              "cache_hit": {
+                "count": 0,
+                "ns": 0
+              },
+              "cache_miss": {
+                "count": 0,
+                "ns": 0
+              }
+            },
+            "response_stats": {},
+            "batch_stats": [
+              {
+                "batch_size": 1,
+                "compute_input": {
+                  "count": 225,
+                  "ns": 265172957
+                },
+                "compute_infer": {
+                  "count": 225,
+                  "ns": 1540081702
+                },
+                "compute_output": {
+                  "count": 225,
+                  "ns": 94627062
+                }
+              }
+            ],
+            "memory_usage": []
+          }
+        ]
+      },
+      "sface_gpu": {
+        "model_stats": [
+          {
+            "name": "sface_gpu",
+            "version": "1",
+            "last_inference": 1794477449509,
+            "inference_count": 225,
+            "execution_count": 225,
+            "inference_stats": {
+              "success": {
+                "count": 225,
+                "ns": 703059218
+              },
+              "fail": {
+                "count": 0,
+                "ns": 0
+              },
+              "queue": {
+                "count": 225,
+                "ns": 63352132
+              },
+              "compute_input": {
+                "count": 225,
+                "ns": 23025479
+              },
+              "compute_infer": {
+                "count": 225,
+                "ns": 585812154
+              },
+              "compute_output": {
+                "count": 225,
+                "ns": 15989352
+              },
+              "cache_hit": {
+                "count": 0,
+                "ns": 0
+              },
+              "cache_miss": {
+                "count": 0,
+                "ns": 0
+              }
+            },
+            "response_stats": {},
+            "batch_stats": [
+              {
+                "batch_size": 1,
+                "compute_input": {
+                  "count": 225,
+                  "ns": 23025479
+                },
+                "compute_infer": {
+                  "count": 225,
+                  "ns": 585812154
+                },
+                "compute_output": {
+                  "count": 225,
+                  "ns": 15989352
+                }
+              }
+            ],
+            "memory_usage": []
+          }
+        ]
+      },
+      "osnet_gpu": {
+        "model_stats": [
+          {
+            "name": "osnet_gpu",
+            "version": "1",
+            "last_inference": 1794477449520,
+            "inference_count": 229,
+            "execution_count": 226,
+            "inference_stats": {
+              "success": {
+                "count": 229,
+                "ns": 5843995052
+              },
+              "fail": {
+                "count": 0,
+                "ns": 0
+              },
+              "queue": {
+                "count": 229,
+                "ns": 1142159174
+              },
+              "compute_input": {
+                "count": 229,
+                "ns": 38675830
+              },
+              "compute_infer": {
+                "count": 229,
+                "ns": 4618722038
+              },
+              "compute_output": {
+                "count": 229,
+                "ns": 30293945
+              },
+              "cache_hit": {
+                "count": 0,
+                "ns": 0
+              },
+              "cache_miss": {
+                "count": 0,
+                "ns": 0
+              }
+            },
+            "response_stats": {},
+            "batch_stats": [
+              {
+                "batch_size": 1,
+                "compute_input": {
+                  "count": 223,
+                  "ns": 36662734
+                },
+                "compute_infer": {
+                  "count": 223,
+                  "ns": 3434883650
+                },
+                "compute_output": {
+                  "count": 223,
+                  "ns": 29612313
+                }
+              },
+              {
+                "batch_size": 2,
+                "compute_input": {
+                  "count": 3,
+                  "ns": 1006548
+                },
+                "compute_infer": {
+                  "count": 3,
+                  "ns": 591919194
+                },
+                "compute_output": {
+                  "count": 3,
+                  "ns": 340816
+                }
+              }
+            ],
+            "memory_usage": []
+          }
+        ]
+      }
+    },
+    "embedding_spaces": {
+      "face": "SFace 128D; ArcFace 5-point 112x112 similarity alignment; RGB FP32 0..255; gallery L2",
+      "body": "OSNet-AIN 512D; OpenCV INTER_LINEAR 128x256 RGB; /255; ImageNet mean/std; gallery L2"
+    },
+    "scope": "Anonymous in-memory demonstration gallery, not real-name recognition or a calibrated production identity system."
+  },
+  "verification": {
+    "full_decode_exit_code": 0,
+    "decoded_frames": 225
+  },
+  "server_device": {
+    "gpu": "NVIDIA GeForce RTX 3090, 24576 MiB, 610.60",
+    "image_id": "sha256:9f9e163bdb742bf81162d2c10bc66a580c60bf45e0902ccbae79690b0c7ea486",
+    "evidence": "Read-only nvidia-smi executed inside the same isolated Triton container"
+  },
+  "code_sha256": {
+    "demo/gpu/client.py": "dc074625d02cce70a28839c32a199acd66ddea1fa442bc176ffc360a1f1f6ad0",
+    "demo/gpu/run.py": "9c27f3228e1de4b9f271fe826bbb4bea6208b17035fee2fcc6de444882907f5d",
+    "demo/gpu/finalize_video.py": "bbc1b662762cf2c96162397e7c752cb5e5dd35856a8ddcd00743a5a326acae8c",
+    "core/gpu_video_pipeline.py": "f1f2f223a6e8794240505ee65124c1629456b0547a96ca36e8bf0de21159f7f1",
+    "core/ordered_pipeline.py": "587c6b73f59d0eeb5f50c1594da67d3e77a01b1f313f02369c2ddf174a9a7ebe",
+    "demo/gpu/identity_client.py": "0dd5e99ed8fbcd5af1f8022c8691574108736d0ca0e861e4922fe9b6c8857835",
+    "core/identity_gallery.py": "b08647e1d0a93066e896cc1b3d9ce46ef078718e5069fa03d2f1571dd4306113"
+  }
+}
