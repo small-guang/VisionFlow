@@ -98,7 +98,7 @@
     "fps": 30.0,
     "stride": 2,
     "distinct_decoded_frames": 225,
-    "media_manifest_sha256": "e3377c7cb46dbd407f03b9f40fc847ad7dfd8402e5da65abb1807b0a46b4a38e"
+    "media_manifest_sha256": "1ebb6afbea4ed496bce33b51a120ea1577fbd311ba2859fa021c4896f104db79"
   },
   "summary": {
     "frames": 225,
