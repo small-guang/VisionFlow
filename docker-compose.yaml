@@ -1,19 +1,21 @@
-name: alog-standalone
+name: visionflow
 
 services:
-  alog:
+  visionflow:
     build:
       context: .
       dockerfile: Dockerfile-ALog
       args:
-        PYTHON_IMAGE: ${PYTHON_IMAGE:-registry.cn-hangzhou.aliyuncs.com/eapil/python:3.12-slim-bookworm}
-    command: python main.py
+        PYTHON_IMAGE: ${PYTHON_IMAGE:-python:3.12-slim-bookworm}
     working_dir: /app
     env_file:
       - path: .env
         required: false
     volumes:
-      - ./:/app
+      - visionflow-logs:/app/logs
     network_mode: "host"
     ipc: ${ALOG_IPC_MODE:-private}
     restart: unless-stopped
+
+volumes:
+  visionflow-logs:

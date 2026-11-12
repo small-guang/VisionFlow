@@ -1,6 +1,6 @@
-# ALog Kafka Topic 说明
+# VisionFlow Kafka Topic 说明
 
-ALog 当前订阅 `PanoramicPersonDetSync`、`PtzPersonDetSync`、`PtzFaceDetSync` 三个输入 topic。三类消息都会走同一套关键帧上下文解析和整图自检测流程；设备侧消息中已有的 S/A/B/C 质量等级、检测框、关键点或位置信息不会作为识别依据。ALog 会基于关键帧整图自行跑人脸检测、人型分割检测、质量评估、识别和向量入库。
+VisionFlow 当前订阅 `PanoramicPersonDetSync`、`PtzPersonDetSync`、`PtzFaceDetSync` 三个输入 topic。三类消息都会走同一套关键帧上下文解析和整图自检测流程；设备侧消息中已有的 S/A/B/C 质量等级、检测框、关键点或位置信息不会作为识别依据。VisionFlow 会基于关键帧整图自行跑人脸检测、人型分割检测、质量评估、识别和向量入库。
 
 消息 value 均为 UTF-8 JSON。
 
@@ -20,7 +20,7 @@ topic 名称不改变字段解析规则；所有输入都必须满足下述关�
 
 `keyFrame`、`keyFrameUrl` 是输入 JSON 的兼容字段名，不是订阅 Topic。
 
-ALog 支持从以下字段解析关键帧对象存储地址，按优先级读取：
+VisionFlow 支持从以下字段解析关键帧对象存储地址，按优先级读取：
 
 - `keyframe`
 - `keyFrame`
@@ -29,7 +29,7 @@ ALog 支持从以下字段解析关键帧对象存储地址，按优先级读取
 - `imageUrl`
 - `image_url`
 
-`panoKeyframeUrl` 是可选的第二图片字段，不参与上述主关键帧候选优先级。主关键帧成功处理后，ALog 才会独立解析并处理全景图；字段缺失、为空或规范化后与主关键帧地址相同时跳过。全景图解析、下载或推理异常仅记录日志，不影响已经完成的主关键帧结果。
+`panoKeyframeUrl` 是可选的第二图片字段，不参与上述主关键帧候选优先级。主关键帧成功处理后，VisionFlow 才会独立解析并处理全景图；字段缺失、为空或规范化后与主关键帧地址相同时跳过。全景图解析、下载或推理异常仅记录日志，不影响已经完成的主关键帧结果。
 
 当前不执行设备 SN 白名单过滤，设备 SN 不限制消息处理。
 
@@ -38,25 +38,25 @@ ALog 支持从以下字段解析关键帧对象存储地址，按优先级读取
 推荐字段：
 
 - 设备 SN：类型 `str`，字段名 `sn`；兼容 `devSn`、`deviceSn`
-- 事件时间戳：类型 `int`，字段名 `timestamp`，兼容 `time`、`ts`，单位毫秒；缺失时由 ALog 使用当前时间兜底
+- 事件时间戳：类型 `int`，字段名 `timestamp`，兼容 `time`、`ts`，单位毫秒；缺失时由 VisionFlow 使用当前时间兜底
 - 关键帧对象存储地址：类型 `str`，字段名 `keyframe`
 - 全景关键帧对象存储地址：类型 `str`，字段名 `panoKeyframeUrl`，可选；地址规则与主关键帧一致
-- 关键帧业务 ID：类型 `str`，字段名 `uId`，必须为非空字符串，推荐使用 UUID；ALog 当前不校验 UUID 格式，输出时映射为 `keyframeId`
+- 关键帧业务 ID：类型 `str`，字段名 `uId`，必须为非空字符串，推荐使用 UUID；VisionFlow 当前不校验 UUID 格式，输出时映射为 `keyframeId`
 
-主关键帧和全景图共享输入 `uId`，因此输出记录的 `keyframeId` 相同；ALog 为两张图分别生成 `pictureVectorId`。全部五类输出固定包含布尔字段 `isPanoKeyframe`：主关键帧为 `false`，`panoKeyframeUrl` 对应的全景图为 `true`。
+主关键帧和全景图共享输入 `uId`，因此输出记录的 `keyframeId` 相同；VisionFlow 为两张图分别生成 `pictureVectorId`。全部五类输出固定包含布尔字段 `isPanoKeyframe`：主关键帧为 `false`，`panoKeyframeUrl` 对应的全景图为 `true`。
 
 关键帧地址规则（主图和全景图使用同一规则）：
 
 - `STORAGE_BACKEND=oss` 为默认模式：如果传入 URL，会移除 scheme、host 和 query，并对 path 做 URL 解码，只保留 object path，保持已有 OSS URL 的解析行为。
-- `STORAGE_BACKEND=minio` 时，完整 URL 必须是与 `MINIO_ENDPOINT`、`MINIO_BUCKET_NAME` 匹配的路径式地址，例如配置 endpoint 为 `minio-host:9000`、bucket 为 `camtells-images` 时，`http://minio-host:9000/camtells-images/sn/picture/frame.jpg` 解析为 `sn/picture/frame.jpg`。不匹配的 endpoint 或 bucket 会拒绝；query 不进入 object key。
-- 裸 object key 不移除 bucket 同名首段；例如 `camtells-images/picture/frame.jpg` 仍按该完整 key 读取。只有匹配的 MinIO 完整 URL 会移除路径中的 bucket 段。
+- `STORAGE_BACKEND=minio` 时，完整 URL 必须是与 `MINIO_ENDPOINT`、`MINIO_BUCKET_NAME` 匹配的路径式地址，例如配置 endpoint 为 `minio-host:9000`、bucket 为 `visionflow-images` 时，`http://minio-host:9000/visionflow-images/sn/picture/frame.jpg` 解析为 `sn/picture/frame.jpg`。不匹配的 endpoint 或 bucket 会拒绝；query 不进入 object key。
+- 裸 object key 不移除 bucket 同名首段；例如 `visionflow-images/picture/frame.jpg` 仍按该完整 key 读取。只有匹配的 MinIO 完整 URL 会移除路径中的 bucket 段。
 - 如果值已是 `.jpg` 或 `.jpeg` 结尾，按完整 object name 使用。
 - 如果值包含 `/` 但没有图片后缀，补成 `{object_name}.jpg`。
 - 如果值不含 `/`、没有图片后缀且存在设备 SN，补成 `{sn}/picture/{keyframe}.jpg`。
 - 如果值不含 `/`、没有图片后缀且不存在设备 SN，补成 `{keyframe}.jpg`。
-- 消息没有显式 SN 时，ALog 会尝试从最终 object name 的第一段推断设备 SN；短名称无法推断时 SN 为空。
+- 消息没有显式 SN 时，VisionFlow 会尝试从最终 object name 的第一段推断设备 SN；短名称无法推断时 SN 为空。
 
-原图读取和人脸、人物裁图写入使用同一个配置后端。以下输出中的 `keyframeUrl`、`faceUrl`、`crop_url` 及 Milvus 图片元数据保存 object key，不额外拼接 bucket 或存储主机，也不生成签名 URL；字段名和 object key 命名规则不因切换后端而改变。上游上传和下游读取服务须同步使用相同存储配置；切换需重启 ALog，不迁移历史图片，不自动回退或双写。配置方式见 [README 图片对象存储](../README.md#图片对象存储)。
+原图读取和人脸、人物裁图写入使用同一个配置后端。以下输出中的 `keyframeUrl`、`faceUrl`、`crop_url` 及 Milvus 图片元数据保存 object key，不额外拼接 bucket 或存储主机，也不生成签名 URL；字段名和 object key 命名规则不因切换后端而改变。上游上传和下游读取服务须同步使用相同存储配置；切换需重启 VisionFlow，不迁移历史图片，不自动回退或双写。配置方式见 [README 图片对象存储](../README.md#图片对象存储)。
 
 示例：
 
@@ -83,18 +83,18 @@ ALog 支持从以下字段解析关键帧对象存储地址，按优先级读取
 
 ## 1. 人脸检测记录：`app-camtells-face-detection-record-topic`
 
-检测框和关键点由 ALog 模型生成，坐标对应关键帧整图。检测记录包含质量分和等级，质量失败也会尽量输出检测记录。质量分级及前置判断统一见[人脸质量规则](人脸人型详细规则.md#一人脸质量与入库)。
+检测框和关键点由 VisionFlow 模型生成，坐标对应关键帧整图。检测记录包含质量分和等级，质量失败也会尽量输出检测记录。质量分级及前置判断统一见[人脸质量规则](人脸人型详细规则.md#一人脸质量与入库)。
 
 字段：
 
 - 关键帧业务 ID：类型 `str`，字段名 `keyframeId`；值来自输入 `uId`
-- 整图向量主键：类型 `int`，字段名 `pictureVectorId`；ALog 内部生成，并作为 `alogPictureClip` 主键
+- 整图向量主键：类型 `int`，字段名 `pictureVectorId`；VisionFlow 内部生成，并作为 `alogPictureClip` 主键
 - 人脸朝向：类型 `str`，字段名 `faceOrientation`；仅允许 `front`、`side`、`no_face`、`unknown`，独立人脸记录正常流程不使用 `no_face`
 - 全景关键帧来源标志：类型 `bool`，字段名 `isPanoKeyframe`；主关键帧为 `false`，`panoKeyframeUrl` 全景图为 `true`，字段固定存在
 - 人脸裁剪图 object key：类型 `str`，字段名 `crop_url`；上传失败时为空
 - 设备 SN：类型 `str`，字段名 `devSn`
 - 事件时间戳：类型 `int`，字段名 `timestamp`，单位毫秒
-- 记录创建时间：类型 `int`，字段名 `createdAt`，单位毫秒，由 ALog 生成
+- 记录创建时间：类型 `int`，字段名 `createdAt`，单位毫秒，由 VisionFlow 生成
 - 检测时间：类型 `int`，字段名 `detectTime`，单位毫秒
 - 人脸关键点：类型 `dict`，字段名 `faceKeypoint`，格式 `{"points": [[x, y], ...]}`
 - 人脸区域：类型 `dict`，字段名 `faceRect`，格式 `{"x": int, "y": int, "w": int, "h": int}`
@@ -169,12 +169,12 @@ ALog 支持从以下字段解析关键帧对象存储地址，按优先级读取
 
 - 设备 SN：类型 `str`，字段名 `devSn`
 - 关键帧业务 ID：类型 `str`，字段名 `keyframeId`；值来自输入 `uId`
-- 整图向量主键：类型 `int`，字段名 `pictureVectorId`；ALog 内部生成，并作为 `alogPictureClip` 主键
+- 整图向量主键：类型 `int`，字段名 `pictureVectorId`；VisionFlow 内部生成，并作为 `alogPictureClip` 主键
 - 人脸朝向：类型 `str`，字段名 `faceOrientation`；仅允许 `front`、`side`、`no_face`、`unknown`，独立人脸记录正常流程不使用 `no_face`
 - 全景关键帧来源标志：类型 `bool`，字段名 `isPanoKeyframe`；主关键帧为 `false`，`panoKeyframeUrl` 全景图为 `true`，字段固定存在
 - 人脸裁剪图 object key：类型 `str`，字段名 `faceUrl`
 - 事件时间戳：类型 `int`，字段名 `timestamp`，单位毫秒
-- 记录创建时间：类型 `int`，字段名 `createdAt`，单位毫秒，由 ALog 生成
+- 记录创建时间：类型 `int`，字段名 `createdAt`，单位毫秒，由 VisionFlow 生成
 - 识别到的人脸 ID：类型 `str`，字段名 `aiFaceId`
 - 相似度分数：类型 `float`，字段名 `score`
 - 向量库中最高相似度命中的 face_id：类型 `str`，字段名 `vectorHitFaceId`；无命中时为空字符串
@@ -218,14 +218,14 @@ crop 允许可变宽高比，整图框和关键点保留原坐标。质量分级
 字段：
 
 - 关键帧业务 ID：类型 `str`，字段名 `keyframeId`；值来自输入 `uId`
-- 整图向量主键：类型 `int`，字段名 `pictureVectorId`；ALog 内部生成，并作为 `alogPictureClip` 主键
+- 整图向量主键：类型 `int`，字段名 `pictureVectorId`；VisionFlow 内部生成，并作为 `alogPictureClip` 主键
 - 人脸朝向：类型 `str`，字段名 `faceOrientation`；取值和异常含义见[朝向字段契约](#朝向字段契约)
 - 人型躯干朝向：类型 `str`，字段名 `personOrientation`；每条人型检测记录固定输出，仅允许 `front`、`side`、`back`、`unknown`。描述躯干/身体方向，独立于 `faceOrientation`（身体 `front`、脸部 `side` 可以同时出现）；由 COCO-17 Pose 计算，分类失败时为 `unknown`
 - 全景关键帧来源标志：类型 `bool`，字段名 `isPanoKeyframe`；主关键帧为 `false`，`panoKeyframeUrl` 全景图为 `true`，字段固定存在
 - 人型裁剪图 object key：类型 `str`，字段名 `crop_url`；上传失败时为空
 - 设备 SN：类型 `str`，字段名 `devSn`
 - 事件时间戳：类型 `int`，字段名 `timestamp`，单位毫秒
-- 记录创建时间：类型 `int`，字段名 `createdAt`，单位毫秒，由 ALog 生成
+- 记录创建时间：类型 `int`，字段名 `createdAt`，单位毫秒，由 VisionFlow 生成
 - 检测时间：类型 `int`，字段名 `detectTime`，单位毫秒
 - 人型区域：类型 `dict`，字段名 `peopleRect`，格式 `{"x": int, "y": int, "w": int, "h": int}`
 - 人型关键点：类型 `dict`，字段名 `personKeypoint`，格式 `{"format":"coco17","points":[[x,y,score],...]}`；坐标为整图坐标，无有效姿态时 `points=[]`
@@ -273,7 +273,7 @@ crop 允许可变宽高比，整图框和关键点保留原坐标。质量分级
 | --- | --- | --- | --- |
 | `mask_area_too_small` | 硬拒绝 | `maskScore < 5`，等价于 `maskPixelCount < 6000` | mask 面积太小，基础质量分不足识别门槛 |
 | `mask_area_below_enroll` | 自然 `1级` | `5 <= maskScore < 7`，等价于 `6000 <= maskPixelCount < 8400` | 可用于识别，但基础 mask 分未达到建库门槛 |
-| `invalid_confidence` | 硬拒绝 | `confidence` 为空、NaN、无穷大或 `<= 0` | ALog 不额外设置 `>=0.5` 门槛，正常正值继续进入后续质量门控 |
+| `invalid_confidence` | 硬拒绝 | `confidence` 为空、NaN、无穷大或 `<= 0` | VisionFlow 不额外设置 `>=0.5` 门槛，正常正值继续进入后续质量门控 |
 | `invalid_image_shape` | 硬拒绝 | 原图宽高异常，`image_w <= 0` 或 `image_h <= 0` | 无法可靠计算 bbox/crop 比例 |
 | `invalid_bbox` | 硬拒绝 | bbox 为空、面积为 `0`，或 `w <= 0`、`h <= 0` | 无法生成有效人型 crop |
 | `empty_crop` | 硬拒绝 | 按 bbox 从原图裁剪后得到空图 | bbox 与图像范围不匹配或裁剪失败 |
@@ -480,7 +480,7 @@ crop 允许可变宽高比，整图框和关键点保留原坐标。质量分级
 
 - 设备 SN：类型 `str`，字段名 `devSn`
 - 关键帧业务 ID：类型 `str`，字段名 `keyframeId`；值来自输入 `uId`
-- 整图向量主键：类型 `int`，字段名 `pictureVectorId`；ALog 内部生成，并作为 `alogPictureClip` 主键
+- 整图向量主键：类型 `int`，字段名 `pictureVectorId`；VisionFlow 内部生成，并作为 `alogPictureClip` 主键
 - 人脸朝向：类型 `str`，字段名 `faceOrientation`；仅允许 `front`、`side`、`no_face`、`unknown`；含义与人型检测记录一致
 - 人型躯干朝向：类型 `str`，字段名 `personOrientation`；每条人型识别记录固定输出，仅允许 `front`、`side`、`back`、`unknown`；含义与人型检测记录一致，独立于 `faceOrientation`
 - 全景关键帧来源标志：类型 `bool`，字段名 `isPanoKeyframe`；主关键帧为 `false`，`panoKeyframeUrl` 全景图为 `true`，字段固定存在
@@ -492,7 +492,7 @@ crop 允许可变宽高比，整图框和关键点保留原坐标。质量分级
 - ReID 分数：类型 `float`，字段名 `score`；成功分配时为胜出类的 `0.60×Top1 + 0.40×TopK平均分`，未分配时为过滤后的单条最高原始相似度
 - 检测时间：类型 `int`，字段名 `detectTime`，单位毫秒
 - 事件时间戳：类型 `int`，字段名 `timestamp`，单位毫秒
-- 记录创建时间：类型 `int`，字段名 `createdAt`，单位毫秒，由 ALog 生成
+- 记录创建时间：类型 `int`，字段名 `createdAt`，单位毫秒，由 VisionFlow 生成
 - 人型区域：类型 `dict`，字段名 `peopleRect`，格式 `{"x": int, "y": int, "w": int, "h": int}`
 - 说明：类型 `str`，字段名 `info`；发生帧内互斥过滤时会追加“同帧互斥已排除 N 个 reid”，完整排除列表只写 Worker 调试日志
 - 人型状态：类型 `int`，字段名 `reidStatus`；`0` 表示未分配，`1` 表示新建有脸 ACTIVE reid，`2` 表示命中 ACTIVE reid
@@ -610,7 +610,7 @@ crop 允许可变宽高比，整图框和关键点保留原坐标。质量分级
 
 ## 5. 向量信息记录：`app-camtells-vector-record-topic`
 
-ALog 在向量成功写入 Milvus 后，会发送向量元数据记录。该消息不包含原始 embedding。
+VisionFlow 在向量成功写入 Milvus 后，会发送向量元数据记录。该消息不包含原始 embedding。
 
 覆盖目标类型：
 
@@ -625,10 +625,10 @@ ALog 在向量成功写入 Milvus 后，会发送向量元数据记录。该消�
 - 向量维度：类型 `int`，字段名 `vectorDim`；`person_sbs` 为 `2048`，人型 CLIP 的 `person` 为 `512`
 - 设备 SN：类型 `str`，字段名 `devSn`
 - 关键帧业务 ID：类型 `str`，字段名 `keyframeId`；值来自输入 `uId`
-- 整图向量主键：类型 `int`，字段名 `pictureVectorId`；ALog 内部生成，并作为 `alogPictureClip` 主键；当 `targetType=picture` 时 `vectorId == pictureVectorId`
+- 整图向量主键：类型 `int`，字段名 `pictureVectorId`；VisionFlow 内部生成，并作为 `alogPictureClip` 主键；当 `targetType=picture` 时 `vectorId == pictureVectorId`
 - 全景关键帧来源标志：类型 `bool`，字段名 `isPanoKeyframe`；主关键帧为 `false`，`panoKeyframeUrl` 全景图为 `true`，字段固定存在
 - 事件时间戳：类型 `int`，字段名 `timestamp`，单位毫秒
-- 记录创建时间：类型 `int`，字段名 `createdAt`，单位毫秒，由 ALog 生成
+- 记录创建时间：类型 `int`，字段名 `createdAt`，单位毫秒，由 VisionFlow 生成
 - 关键帧 object key：类型 `str`，字段名 `keyframeUrl`
 - 向量模型名称：类型 `str`，字段名 `modelName`
 - 向量数据库名称：类型 `str`，字段名 `vectorDbName`

@@ -2,7 +2,7 @@
 
 ## 压测窗口综合采样
 
-`observe_benchmark.py` 在 `observe_io.py` 的只读资源采样基础上，同时采集 Milvus、etcd 的 Prometheus 指标和已有 ALog 性能日志，不发送压测流量、不导入业务连接配置、不启动或重启服务。可在外部发流前启动采集，覆盖发流及排空过程：
+`observe_benchmark.py` 在 `observe_io.py` 的只读资源采样基础上，同时采集 Milvus、etcd 的 Prometheus 指标和已有 VisionFlow 性能日志，不发送压测流量、不导入业务连接配置、不启动或重启服务。可在外部发流前启动采集，覆盖发流及排空过程：
 
 ```bash
 python performance_tools/observe_benchmark.py \
@@ -13,15 +13,15 @@ python performance_tools/observe_benchmark.py \
 
 把示例 PID 改为对应的**主机 PID**；`--root` 可省略或重复，用于跟踪各根进程及其子进程的 CPU、RSS 和 I/O。默认读取 `logs/ALog.log`、`logs/pipeline_stats.jsonl` 和 `http://127.0.0.1:9091/metrics`，路径和 Milvus 地址可分别通过 `--app-log`、`--pipeline-path`、`--milvus-url` 修改。人脸和 SBS 集合默认为 `alogFace`、`alogSBS`；使用隔离前缀时通过 `--face-collection`、`--sbs-collection` 指定完整集合名。输出目录必须不存在；采集器本身会产生少量磁盘写入。默认采集 `sda` 和 `mmcblk0`；新增磁盘可用重复的 `--disk` 额外指定，例如 `--disk nvme0n1`，请求的设备不存在时会明确记录。
 
-etcd 默认不采集；如需在当前 Docker 部署下采集，可每次通过 Docker 查询当前网络地址，再将 `--etcd-url "http://${TASK_ETCD_IP}:2379/metrics"` 加入命令。容器重建后地址可能变化，不应将某次地址写死；Docker 操作权限不足时需使用有权限的账号。
+etcd 默认不采集；如需在 Docker 部署下采集，可每次通过 Docker 查询当前网络地址，再将 `--etcd-url "http://${TASK_ETCD_IP}:2379/metrics"` 加入命令。将示例中的 `YOUR_MILVUS_NETWORK` 替换为 etcd 所连接的 Docker 网络名。容器重建后地址可能变化，不应将某次地址写死；Docker 操作权限不足时需使用有权限的账号。
 
 ```bash
-TASK_ETCD_IP="$(sudo docker inspect --format '{{(index .NetworkSettings.Networks "camtellsvi-milvus").IPAddress}}' milvus-etcd)"
+TASK_ETCD_IP="$(sudo docker inspect --format '{{(index .NetworkSettings.Networks "YOUR_MILVUS_NETWORK").IPAddress}}' milvus-etcd)"
 ```
 
-结果包括 `benchmark_summary.json`（完整性能汇总桶、ALog 完成速率、队列快照、资源及各指标有效性）、`prometheus.jsonl`（白名单原始指标样本）以及 `resources/` 下的原始资源、pipeline 和采集摘要。`--root` 未提供时不会自动推断各服务进程。采样端点不可达、计数器重置、指标缺失或样本不足不等于零负载，应检查汇总中的原因、实际窗口及原始样本。GPU load 是逐路径 sysfs 原值；Jetson 常见千分比，但无法读取时不推测 GPU 利用率。
+结果包括 `benchmark_summary.json`（完整性能汇总桶、VisionFlow 完成速率、队列快照、资源及各指标有效性）、`prometheus.jsonl`（白名单原始指标样本）以及 `resources/` 下的原始资源、pipeline 和采集摘要。`--root` 未提供时不会自动推断各服务进程。采样端点不可达、计数器重置、指标缺失或样本不足不等于零负载，应检查汇总中的原因、实际窗口及原始样本。GPU load 是逐路径 sysfs 原值；Jetson 常见千分比，但无法读取时不推测 GPU 利用率。
 
-ALog 性能日志只汇总完整落入采集窗口的周期，按 PID 展示；pipeline 队列按日志来源、session 和 PID 分组。输入、业务图片完成和异步输出持久化是不同口径；短时快照峰值可能低于真实峰值。Milvus 的集合 Search 耗时、跨集合 Proxy/QueryNode 排队和 etcd fsync 分别使用各自指标时间窗口：Prometheus 直方图分位数为桶上界，不能与 SDK 或其他集合的样本直接逐请求相减。日志轮转、进程重启及其他并发业务也可能影响覆盖或归因；严格比较时应另外记录发流起止、输入组成和排空情况。
+VisionFlow 性能日志只汇总完整落入采集窗口的周期，按 PID 展示；pipeline 队列按日志来源、session 和 PID 分组。输入、业务图片完成和异步输出持久化是不同口径；短时快照峰值可能低于真实峰值。Milvus 的集合 Search 耗时、跨集合 Proxy/QueryNode 排队和 etcd fsync 分别使用各自指标时间窗口：Prometheus 直方图分位数为桶上界，不能与 SDK 或其他集合的样本直接逐请求相减。日志轮转、进程重启及其他并发业务也可能影响覆盖或归因；严格比较时应另外记录发流起止、输入组成和排空情况。
 
 验证采集工具本身：
 
@@ -66,9 +66,9 @@ python performance_tools/observe_io.py \
 python -m unittest discover -s tests -p "test_io_observer.py"
 ```
 
-`kafka_replay.py` 用当前 Kafka 的真实关键帧消息重走 ALog 的“下载 → 整图向量 → 人脸 → 人型 → 异步向量写库与 Kafka 输出”链路。默认输入 Topic 为 `PtzPersonDetSync`。脚本不导入 `main.py`、不启动第二个 Worker、不创建 Milvus 客户端，运行中的 ALog 负责处理回放消息。
+`kafka_replay.py` 用当前 Kafka 的真实关键帧消息重走 VisionFlow 的“下载 → 整图向量 → 人脸 → 人型 → 异步向量写库与 Kafka 输出”链路。默认输入 Topic 为 `PtzPersonDetSync`。脚本不导入 `main.py`、不启动第二个 Worker、不创建 Milvus 客户端，运行中的 VisionFlow 负责处理回放消息。
 
-连接配置统一使用 `core.config.settings`；需要项目现有依赖及能访问 Kafka 的运行环境。推荐在当前 ALog 容器内执行。以下命令在项目根目录执行；容器里项目目录通常是 `/app`，可使用 `docker exec -w /app <alog-container> python ...`。不需要 root 权限的 Python 逻辑，也不需要在命令行填任何连接密码。
+连接配置统一使用 `core.config.settings`；需要项目现有依赖及能访问 Kafka 的运行环境。推荐在当前 VisionFlow 容器内执行。以下命令在项目根目录执行；容器里项目目录通常是 `/app`，可使用 `docker exec -w /app <visionflow-container> python ...`。不需要 root 权限的 Python 逻辑，也不需要在命令行填任何连接密码。
 
 ## 隔离回放与比较条件
 
@@ -109,7 +109,7 @@ A/B 两轮固定消息快照及 SHA256、发送顺序/节奏、pano 开关、事
 | Triton 客户端组批 / 远程 RPC | 目标 B4、等待 2 ms；RPC 容量 80、client 容量 100，已形成 batch 等待区 256 |
 | 系统共享内存 | 模板 `TRITON_SYSTEM_SHM_SLOTS=0`、`ALOG_IPC_MODE=private`；本机同机配置为 16 槽 × 32 MiB、两端 `host` IPC |
 
-`VISUAL_WORKER_PROCESSES=0` 仍是有效的单进程模式，可用于受限环境或固定条件下的对照；不是当前默认。多进程的 CPU、存储、Triton 与准备容量均为全局预算，比较时应同时记录每个视觉进程实际分到的份额和 owner 队列。Triton 远程模型与 engine 必须实际支持配置的 B4；Jetson 使用 `orin_gpu` 及新 GPU 合批模块。ALog 的本地 batch、Triton 收到的 request 数和 TensorRT 实际 enqueue 数是不同计数，不能相互代替。
+`VISUAL_WORKER_PROCESSES=0` 仍是有效的单进程模式，可用于受限环境或固定条件下的对照；不是当前默认。多进程的 CPU、存储、Triton 与准备容量均为全局预算，比较时应同时记录每个视觉进程实际分到的份额和 owner 队列。Triton 远程模型与 engine 必须实际支持配置的 B4；Jetson 使用 `orin_gpu` 及新 GPU 合批模块。VisionFlow 的本地 batch、Triton 收到的 request 数和 TensorRT 实际 enqueue 数是不同计数，不能相互代替。
 
 异步 Face 查询始终走同一个 `VectorQueryCoordinator`；将批大小设为 1 只限制每次 RPC 的向量数，不关闭调度器。对照时固定 Strong 一致性、过滤、召回额度、算法阈值和图库初始状态，比较完整图片完成与输出排空，同时核对身份零/非零变化、split/merge、质量字段及错误数。调度时序变化不能只靠随机 ID 重映射判定为等价。
 
@@ -142,7 +142,7 @@ python performance_tools/kafka_replay.py replay \
   --log-file logs/ALog.log
 ```
 
-**`replay` 会真实写 Kafka，ALog 随后会执行真实推理、上传裁图、写 Milvus 和输出记录。** 省略限量参数时默认发送 10 条、每秒 1 条；不需要再次交互确认。脚本生成本轮独立 `uId`，保留原 SN、主图片字段和事件时间。相同图片可以多次回放，会产生新的图片向量和业务输出，已有身份仍按现行业务规则处理。
+**`replay` 会真实写 Kafka，VisionFlow 随后会执行真实推理、上传裁图、写 Milvus 和输出记录。** 省略限量参数时默认发送 10 条、每秒 1 条；不需要再次交互确认。脚本生成本轮独立 `uId`，保留原 SN、主图片字段和事件时间。相同图片可以多次回放，会产生新的图片向量和业务输出，已有身份仍按现行业务规则处理。
 
 默认去掉 `panoKeyframeUrl`，便于一条输入对应一张主图；`--keep-pano` 保留它，此时每条消息最多处理两张图，消息 QPS 不能直接当作图片 QPS。`--event-time now` 将事件时间改为发送时刻；默认 `preserve` 完全保留原事件时间，端到端观察使用本轮发送时间而非旧事件时间。
 
@@ -173,11 +173,11 @@ python performance_tools/kafka_replay.py replay \
 | --- | --- |
 | `sent.jsonl` | 每条独立 `uId`、输入来源、发送时间、ACK 时间和最终 Kafka offset；失败记录异常类型 |
 | `outputs.jsonl` | 五类输出 Topic 中仅属于本轮 `uId` 的记录定位和延迟；不复制向量 embedding |
-| `summary.json` | 实际发送量与速度、输出量、首条输出延迟、整图向量写库后输出延迟、指标前后快照、同窗口 ALog 性能汇总 |
+| `summary.json` | 实际发送量与速度、输出量、首条输出延迟、整图向量写库后输出延迟、指标前后快照、同窗口 VisionFlow 性能汇总 |
 
 输出观察消费者同样不加入消费组、不提交 offset，从发送前捕获的输出 Topic 末尾开始读；有其他业务流量时，仅按本轮 UUID 匹配结果。默认观察所有五个输出 Topic；若测试环境缺少输出 Topic，可显式使用 `--no-observe` 只测试发送。输出数量为观察截止时的结果，异步写入或积压可能在窗口结束后完成，因此“没看到”不是最终失败结论，应加长 `--wait-seconds` 或继续查看日志。
 
-ALog 默认 INFO 周期输出 `ALog performance summary: {JSON}`。使用 `--log-file` 后，脚本采集从回放开始到观察结束的新汇总，包含：
+VisionFlow 默认 INFO 周期输出 `ALog performance summary: {JSON}`。使用 `--log-file` 后，脚本采集从回放开始到观察结束的新汇总，包含：
 
 - `operations.image_decode`：注入的 `image_cpu` 工作线程中 `cv2.imdecode()` 的调用次数、错误次数、总耗时、平均和最大毫秒数，不含图片下载、名额等待或线程调度。
 - `operations.image_decode_queue_wait`：从下载完成后请求解码，到工作线程实际开始解码的等待；正式入口与其他图像工作共享有界 CPU 资源。

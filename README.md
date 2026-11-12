@@ -1,6 +1,8 @@
-# ALog
+# VisionFlow
 
-ALog 是视觉分析 Worker：从 Kafka 消费关键帧消息，从配置的 OSS 或 MinIO 下载图片，调用 Triton 完成人脸、人型和整图特征分析，将向量写入 Milvus，并向 Kafka 输出检测、识别和向量元数据。
+VisionFlow 是视觉分析 Worker：从 Kafka 消费关键帧消息，从配置的 OSS 或 MinIO 下载图片，调用 Triton 完成人脸、人型和整图特征分析，将向量写入 Milvus，并向 Kafka 输出检测、识别和向量元数据。
+
+本仓库采用 [Apache License 2.0](LICENSE)。部分配置变量、日志和数据集合仍使用历史名称 `ALOG` / `ALog` / `alog`，以保持现有部署和上下游数据兼容。
 
 ## 文档导航
 
@@ -11,26 +13,26 @@ ALog 是视觉分析 Worker：从 Kafka 消费关键帧消息，从配置的 OSS
 | SBS 查询、ReID 分配、原型策略与集合结构 | [人型 ReID 识别完整流程](docs/人型ReID识别完整流程.md) |
 | SBS 防污染约束及排查入口 | [SBS ReID 防污染机制](docs/SBS_ReID防污染机制.md) |
 | 输入消息、输出字段、状态与 JSON 示例 | [Kafka Topic 契约](docs/kafka_topic.md) |
-| 多架构镜像发布、部署目录准备、升级与回滚 | [ALog 独立部署](docs/ALog独立部署.md) |
-| 调度资源重构、隔离历史回放与性能验收记录 | [2026-10-19 调度资源重构与性能验证](docs/2026-10-19_调度资源重构与性能验证.md) |
+| 队列统计、指标口径和写出隔离 | [流水线队列统计与写出隔离](docs/流水线队列统计与写出隔离.md) |
+| Kafka 消息快照与限速回放 | [性能工具说明](performance_tools/README.md) |
 
 ## 快速运行
 
-运行环境使用 Python 3.12、Linux 或 WSL；入口依赖 `uvloop`。需要可访问的 Kafka、Milvus、Triton 和所选对象存储，并填写配置要求的 PostgreSQL 参数。
+运行环境使用 Python 3.12、Linux 或 WSL；入口依赖 `uvloop`。需要可访问的 Kafka、Milvus、Triton 和所选对象存储，并填写配置要求的 PostgreSQL 参数。本仓库和 Compose 只提供 VisionFlow 服务，不包含这些依赖服务、Triton 模型或模型权重。需自行部署符合[模型契约](docs/代码架构与处理流程.md#81-triton-模型契约)的 Triton 模型仓库，并分别确认所用模型和第三方组件的许可及使用条件。
 
 1. 复制配置模板，填写连接信息：
 
-   ```powershell
-   Copy-Item .env.example .env
+   ```bash
+   cp .env.example .env
    ```
 
 2. 启动服务：
 
    ```powershell
-   docker compose up --build alog
+   docker compose up --build visionflow
    ```
 
-Compose 使用宿主机网络，将项目挂载到 `/app`，并设置 `restart: unless-stopped`。依赖地址须从宿主机网络可达。镜像定义见 [Dockerfile-ALog](Dockerfile-ALog)，启动配置见 [docker-compose.yaml](docker-compose.yaml)。
+Compose 使用宿主机网络和命名卷 `visionflow-logs` 保存日志，并设置 `restart: unless-stopped`。镜像包含项目源码和算法参数；修改源码后需重新构建。依赖地址须从宿主机网络可达。镜像定义见 [Dockerfile-ALog](Dockerfile-ALog)，启动配置见 [docker-compose.yaml](docker-compose.yaml)。
 
 直接在 Linux / WSL 运行：
 
@@ -51,18 +53,19 @@ python main.py
 
 ### 算法参数档案
 
-默认算法参数来自 [config/algorithm.toml](config/algorithm.toml)，两种 Docker 镜像均内置该档案。根目录的开发 Compose 还会把仓库挂载到 `/app`，因此运行时看到的是宿主机的 `config/algorithm.toml`；独立部署的发布镜像不挂载源码，使用镜像内置档案。
+默认算法参数来自 [config/algorithm.toml](config/algorithm.toml)，Docker 镜像内置该档案，Compose 不挂载源码。
 
-如需覆盖，在 `.env` 中设置可选的 `ALGORITHM_CONFIG_PATH`；相对路径从 `/app` 解析，绝对路径可用于挂载的文件。生产部署可在 `deploy/alog/compose.yaml` 的 `alog` 服务中添加只读挂载：
+如需覆盖，在 `.env` 中设置可选的 `ALGORITHM_CONFIG_PATH`；相对路径从 `/app` 解析，绝对路径可用于挂载的文件。例如在 `docker-compose.yaml` 的 `visionflow` 服务中增加如下字段：
 
 ```yaml
 environment:
-  ALGORITHM_CONFIG_PATH: /run/alog/algorithm.toml
+  ALGORITHM_CONFIG_PATH: /run/visionflow/algorithm.toml
 volumes:
-  - ./algorithm.toml:/run/alog/algorithm.toml:ro
+  - visionflow-logs:/app/logs
+  - ./algorithm.toml:/run/visionflow/algorithm.toml:ro
 ```
 
-上述片段是服务字段示例；若保留现有日志卷，也要在同一个 `volumes` 列表中保留 `alog-logs:/app/logs`。修改档案后需重启 ALog，运行中的进程不会热加载。启动时会严格校验所选 TOML；文件缺失、语法错误、未知参数或不合法的取值都会使启动失败，不会静默退回默认档案。参数的单位、边界及含义见档案中的中文行内注释；无需为每个阈值增加环境变量。
+上述片段是服务字段示例，保留了现有日志卷。修改档案后需重启 VisionFlow，运行中的进程不会热加载。启动时会严格校验所选 TOML；文件缺失、语法错误、未知参数或不合法的取值都会使启动失败，不会静默退回默认档案。参数的单位、边界及含义见档案中的中文行内注释；无需为每个阈值增加环境变量。
 
 人脸图库每个 Face ID 的向量上限由 `face.gallery.max_vectors_per_id` 设置，默认 `20`，范围 `1–1000`。从旧版本升级时，请把 `.env` 中的 `FACE_MAX_VECTORS_PER_ID` 移到选用的 TOML 档案；旧变量仍存在会使启动失败，以免忽略原值后误删样本。调低上限后，该身份下次写入时会按质量分和采集时间清理超额向量。
 
@@ -73,7 +76,7 @@ volumes:
 | PostgreSQL | `PGSQL_HOST`、`PGSQL_PORT`、`PGSQL_DB`、`PGSQL_USER`、`PGSQL_PSWD` |
 | Milvus | `MILVUS_URI`、`MILVUS_TOKEN` |
 | Kafka | `KAFKA_BROKER_ADDR`、`KAFKA_BROKER_PORT`、`KAFKA_GROUP_ID` |
-| Triton | `TRITON_SERVER_URL`，填写 ALog 可达的 gRPC 地址，例如 `triton-host:8001` |
+| Triton | `TRITON_SERVER_URL`，填写 VisionFlow 可达的 gRPC 地址，例如 `triton-host:8001` |
 | OSS（`STORAGE_BACKEND=oss`，默认） | `OSS_ACCESS_KEY_ID`、`OSS_ACCESS_KEY_SECRET`、`OSS_ENDPOINT`、`OSS_BUCKET_NAME` |
 | MinIO（`STORAGE_BACKEND=minio`） | `MINIO_ENDPOINT`、`MINIO_ACCESS_KEY`、`MINIO_SECRET_KEY`、`MINIO_BUCKET_NAME`；`MINIO_SECURE` 默认 `false` |
 
@@ -83,7 +86,7 @@ PostgreSQL 参数保留必填校验；生产入口不创建 PostgreSQL 会话或
 
 ### 图片对象存储
 
-`STORAGE_BACKEND` 只接受 `oss` 或 `minio`，未配置时使用 `oss`，兼容现有 OSS 部署。启动时只要求所选后端的连接参数；原图下载、人脸裁图和人物裁图上传统一使用该后端。修改后须重启 ALog，不支持热切换。
+`STORAGE_BACKEND` 只接受 `oss` 或 `minio`，未配置时使用 `oss`，兼容现有 OSS 部署。启动时只要求所选后端的连接参数；原图下载、人脸裁图和人物裁图上传统一使用该后端。修改后须重启 VisionFlow，不支持热切换。
 
 切换到 MinIO 时，在 `.env` 中设置：
 
@@ -92,19 +95,19 @@ STORAGE_BACKEND=minio
 MINIO_ENDPOINT=minio-host:9000
 MINIO_ACCESS_KEY=
 MINIO_SECRET_KEY=
-MINIO_BUCKET_NAME=camtells-images
+MINIO_BUCKET_NAME=visionflow-images
 MINIO_SECURE=false
 ```
 
-将 `minio-host` 替换为 ALog 可达的宿主机 IP 或域名，并填写凭据。`MINIO_ENDPOINT` 使用 `host:port`，不带 `http://` 或 `https://`；`MINIO_SECURE=true` 使用 HTTPS，`false` 使用 HTTP。连接对象存储 API 端口 `9000`，不要使用控制台端口 `9001` 或服务器磁盘目录。当前 Compose 使用宿主机网络；跨机器部署不能使用 `localhost` 或 MinIO 容器名。同机地址也需确认从 ALog 运行环境可达。
+将 `minio-host` 替换为 VisionFlow 可达的宿主机 IP 或域名，并填写凭据。`MINIO_ENDPOINT` 使用 `host:port`，不带 `http://` 或 `https://`；`MINIO_SECURE=true` 使用 HTTPS，`false` 使用 HTTP。连接对象存储 API 端口 `9000`，不要使用控制台端口 `9001` 或服务器磁盘目录。当前 Compose 使用宿主机网络；跨机器部署不能使用 `localhost` 或 MinIO 容器名。同机地址也需确认从 VisionFlow 运行环境可达。
 
-可复用已有 Milvus 的 MinIO 服务，但业务图片建议使用独立 bucket `camtells-images`，不要混入 Milvus 内部的 `a-bucket` / `files` 数据。ALog 不自动创建 bucket；运行前需由存储管理员准备 bucket，并为所填凭据授权读取原图、写入裁图。
+可复用已有 Milvus 的 MinIO 服务，但业务图片建议使用独立 bucket，如 `visionflow-images`，不要混入 Milvus 内部的 `a-bucket` / `files` 数据。VisionFlow 不自动创建 bucket；运行前需由存储管理员准备 bucket，并为所填凭据授权读取原图、写入裁图。
 
 输入推荐使用裸 object key；MinIO 完整 URL 仅接受与配置 endpoint、bucket 匹配的路径式地址，详见 [Kafka 输入契约](docs/kafka_topic.md#0-输入-topic)。Kafka 图片字段和 Milvus 图片元数据继续保存 object key，不生成签名 URL。切换前须同步上游图片上传服务和下游图片读取服务；开关不会迁移历史 OSS 图片，也不会自动回退到旧后端或双写。
 
 ### 并发与组批
 
-下表的代码默认值与根目录 [.env.example](.env.example)、[独立部署模板](deploy/alog/.env.example) 保持一致，采用本轮回放后保留的 `baseline` 资源档位：一个 owner 和四个视觉进程、统一图片 CPU 池、Face 查询合批及 Triton B4 组批。扩大并发与查询批大小尚未带来稳定的完整吞吐收益，当前保留这一档位；其他环境仍需同输入实测。环境变量可覆盖这些值，修改后重启服务。
+下表的代码默认值与根目录 [.env.example](.env.example) 保持一致，采用 `baseline` 资源档位：一个 owner 和四个视觉进程、统一图片 CPU 池、Face 查询合批及 Triton B4 组批。其他环境仍需同输入实测；环境变量可覆盖这些值，修改后重启服务。
 
 | 变量 | 代码与模板默认值 | 含义 |
 | --- | ---: | --- |
@@ -163,20 +166,20 @@ MINIO_SECURE=false
 - `VISUAL_WORKER_PROCESSES=N`（1..4）时，通过 `spawn` 启动 N 个视觉进程，各自持有图像 CPU、存储、Triton client 和本地模型调度器；owner 仅持有 Milvus 搜索/写入池、身份状态、输出缓冲与全局准入。`N=1` 也使用 owner 与视觉进程分离的模式；`0` 使用有效的单进程装配，可供受限环境或受控对照使用。图像、mask 和裁图字节不经过身份 IPC；整图向量、人脸、人型仍按原顺序处理，Face 身份结果返回后才进入同帧 Person。各进程的 Triton 组批队列独立，实际 batch 与吞吐需回放验证。
 - 多进程下这些配置继续表示全局资源预算：`IMAGE_CPU_WORKERS`、有效 `STORAGE_IO_WORKERS`、Triton client/执行/排队容量、Face/Person 全局准备容量、有效 `PERSON_FACE_CONCURRENCY` 按商余分配，子进程额度之和等于原配置；这些正数额度必须至少为 N，启动时拒绝无法分配的配置。每帧准备并发取原值与本进程全局容量的较小值，前瞻 M 保持原值；消息、图片数量和图片字节预算由 owner 统一控制，不复制到子进程。`TRITON_SYSTEM_SHM_SLOTS` 也按商余分配，单槽大小不变，因此总 SHM 字节数不变；总复制线程数保持 `min(4, 全局槽数)` 并分给各进程。某进程分到 0 槽时使用普通 gRPC。
 - 消息按视觉进程当前在途消息数分配，没有按 CPU 配额加权。例如总 `IMAGE_CPU_WORKERS=4` 时，3 个视觉进程得到 `2/1/1`，4 个得到 `1/1/1/1`；相同在途消息数不代表相同处理能力。增加进程数还会分散本地组批，并增加进程、客户端和缓存开销；不要仅凭核心数决定进程数。`MULTIPROCESS_IPC_MAX_REQUESTS/MAX_BYTES` 保持每个 peer 的每类额度，随视觉进程数增加，整组 IPC 额度也增加，不能称所有资源总量都保持不变。
-- 多进程视觉日志与 owner 分开：性能日志为 `PIPELINE_STATS_PATH` 同目录的 `visual-1.log` 至 `visual-N.log`；阶段日志在原文件名中加入 `.visual-1` 至 `.visual-N`。owner 的图片完成计数通过显式 IPC 汇总，子进程只返回自己的队列快照，避免重复消费周期性能计数。Snowflake ID 在当前单 owner 进程组内使用 owner worker ID 0、视觉 worker ID 1..N（最多 4）；这不是多个独立 ALog 副本之间的 ID 分配协议，仍不支持直接复制多个相同编号的进程组写同一业务数据域。
+- 多进程视觉日志与 owner 分开：性能日志为 `PIPELINE_STATS_PATH` 同目录的 `visual-1.log` 至 `visual-N.log`；阶段日志在原文件名中加入 `.visual-1` 至 `.visual-N`。owner 的图片完成计数通过显式 IPC 汇总，子进程只返回自己的队列快照，避免重复消费周期性能计数。Snowflake ID 在当前单 owner 进程组内使用 owner worker ID 0、视觉 worker ID 1..N（最多 4）；这不是多个独立 VisionFlow 副本之间的 ID 分配协议，仍不支持直接复制多个相同编号的进程组写同一业务数据域。
 - 服务启动调用 `cv2.setNumThreads(1)`，限制 OpenCV 算子内部线程与应用线程池竞争。资源池容量与 Triton RPC 容量独立；取消异步调用方不会提前归还仍在执行的线程许可，停机等待实际线程结束后关闭数据库连接。CPU/GPU 利用率与完整图片吞吐仍需用相同输入实测。
 - 图片解码及人型准备要求显式注入 `image_executor`，统一使用 `IMAGE_CPU_WORKERS` 管理的图片资源域；独立朝向评估器也显式创建、注入和关闭 `AsyncWorkExecutor`。原 `IMAGE_DECODE_WORKERS`、`PERSON_PREPARATION_WORKERS`、`IO_THREAD_WORKERS` 及两套惰性图片池已移除，升级时删除旧配置，设置正值 `STORAGE_IO_WORKERS`。生产入口不设置 loop 默认执行器；重启后核对 `queues.resources` 的有效容量和等待。
 - 慢裁图上传阻塞原图下载时，可设置 `STORAGE_DOWNLOAD_RESERVED_WORKERS`。下载仍可使用整个存储池；上传在事件循环等待分类名额，同一池线程总数保持不变，下载空闲时保底名额也不会借给上传。该值必须小于有效存储容量；多进程下按商余分配，启用时下载保底和剩余上传容量均至少为视觉进程数，避免某进程没有下载保底或无法上传。例：总存储64、四视觉、保底4时，每进程16线程，上传至多15，下载至少留1。默认4；调整时需比较完整图片吞吐、分类等待和输出排空；提高保底可能降低上传吞吐。取消调用不会提前归还已运行上传的名额，关闭会唤醒未接纳等待者并排空真实工作。
 - `FrameBudget` 在下载之前保留图片名额，主图/全景图各自计数，图像流程完成或取消时释放。启用字节预算后，有效图片容量是配置帧数与 `FRAME_MEMORY_BUDGET_BYTES // FRAME_RESERVATION_BYTES` 中的较小值。它使用固定估算，不会在已持有图片时等待扩容；原图与压缩字节只作观测，不包括 mask、crop、Tensor、SDK 缓冲和仍运行的取消线程，因此不限制全进程 RSS。默认字节预算为 0，延续仅按数量接纳的行为。
 - 人脸与人物的准备名额分别计数，推理 RPC 共同受 `TRITON_EXECUTOR_CONCURRENCY` 限制。两类 `FRAME_CONCURRENCY`、`GLOBAL_CONCURRENCY` 均须为正整数，两类 `PREPARE_LOOKAHEAD`、消息/图片容量覆盖值、`PERSON_FACE_CONCURRENCY` 和字节预算须为非负整数。调整准备并发与前瞻容量时，同时比较按序等待、消息在途、输出积压和完整图片吞吐，避免只把排队转移到下游。
 - `TRITON_EXECUTOR_CONCURRENCY` 不得超过 `TRITON_CLIENT_POOL_SIZE`。
-- `TRITON_SYSTEM_SHM_SLOTS>0` 要求 ALog 与 Triton 位于同机且共享 `/dev/shm`，以及 Triton 使用 `--allow-client-shm=true`。所附 Compose 的 `ALOG_IPC_MODE` 默认 `private`；两端均使用 host IPC 时，将 ALog 的该值设为 `host`，并重建容器。该方式只优化 `face_det`、`person_seg`、`person_pose` 大于等于 1 MiB 的 `RAW_IMAGE` 输入，输出仍走 gRPC。小图、超过单槽容量或没有可用槽时使用原传输路径。
+- `TRITON_SYSTEM_SHM_SLOTS>0` 要求 VisionFlow 与 Triton 位于同机且共享 `/dev/shm`，以及 Triton 使用 `--allow-client-shm=true`。所附 Compose 的 `ALOG_IPC_MODE` 默认 `private`；两端均使用 host IPC 时，将 VisionFlow 的该值设为 `host`，并重建容器。该方式只优化 `face_det`、`person_seg`、`person_pose` 大于等于 1 MiB 的 `RAW_IMAGE` 输入，输出仍走 gRPC。小图、超过单槽容量或没有可用槽时使用原传输路径。
   每个请求独占一个槽，图像复制在线程池执行。Triton 重启导致注册丢失时，只对当前槽的精确 `NOT_FOUND` 错误查询注册表；确认自身 region 缺失后，在保留原租约和像素的前提下重新注册同一 region，并最多重发一次。状态不明确、修复失败、其他已发送异常或取消仍将槽隔离直到 transport 关闭，后续重试成功也不恢复；总槽数固定，不补建，也不回收历史隔离槽。关闭会排空本地复制、请求和已提交的修复注册，只注销本进程创建的区域。开启后需对照完整图片吞吐，不能将单模型 RPC 速度直接视为业务 QPS。
   代码和模板保留 `TRITON_SYSTEM_SHM_SLOTS=0`、Compose `ALOG_IPC_MODE=private`，支持跨机器部署。本机同机配置使用 16 槽、每槽 32 MiB，共 512 MiB，并将两端 IPC 设为 `host`；多进程下槽数按全局预算分账，复制线程总计最多 4 个。该设置最多同时服务 16 个大图 RPC，其他调用即时使用普通传输，实际吞吐、事件循环延迟及内存仍需回放核对。
 - `TRITON_BATCH_TARGETS`、`TRITON_BATCH_WAIT_MS` 使用 JSON 对象按[模型业务 key](docs/代码架构与处理流程.md#81-triton-模型契约)覆盖配置，例如 `{"person_seg":4}`、`{"person_seg":20}`。
-- 目标 batch 大于 `1` 时，对应等待时间必须大于 `0`，且目标不得超过 Triton 远程模型的 `max_batch_size`。默认目标为 B4，ALog 启动校验远程模型声明的批上限；服务端还须保证 TensorRT engine 实际支持所用批大小。若服务端只支持 B1，须显式降低相应客户端目标，不能只修改服务端声明。
-- Jetson Triton 默认使用 `orin_gpu` 配置，Pose/Seg 各两个实例，启用无额外凑批等待的 `dynamic_batching {}`。服务端 `yolo_request_batching.py` 与 `yolo_orin_pipeline.py` 将一次 `execute(requests)` 中同形状请求合并为总 B≤4 的 GPU 执行，再拆回每个原 RPC；这能合并来自不同视觉进程的请求。Face 检测保持每个原 RPC 独立执行。客户端 batch、服务端请求数和 TensorRT 实际 enqueue 数须分别观测，模块边界见[推理流程](docs/代码架构与处理流程.md#82-单次推理请求的内部流程)。
-- 降低服务端 `max_batch_size` 前，先降低客户端目标并重启 ALog；提高服务端上限后，客户端目标保持原配置。
+- 目标 batch 大于 `1` 时，对应等待时间必须大于 `0`，且目标不得超过 Triton 远程模型的 `max_batch_size`。默认目标为 B4，VisionFlow 启动校验远程模型声明的批上限；服务端还须保证 TensorRT engine 实际支持所用批大小。若服务端只支持 B1，须显式降低相应客户端目标，不能只修改服务端声明。
+- 在曾用于回放的 Jetson Triton 配置中，Pose/Seg 使用两个 GPU 实例并启用 `dynamic_batching {}`；服务端可进一步合并来自不同视觉进程的请求。该服务端配置不包含在本仓库中，实际能力取决于自行部署的模型仓库。客户端 batch、服务端请求数和 TensorRT 实际 enqueue 数须分别观测，模块边界见[推理流程](docs/代码架构与处理流程.md#82-单次推理请求的内部流程)。
+- 降低服务端 `max_batch_size` 前，先降低客户端目标并重启 VisionFlow；提高服务端上限后，客户端目标保持原配置。
 - 执行器队列满时立即拒绝新 batch。排队超时与远程推理超时分别计算；RPC 开始后使用远程推理期限。
 
 ### 业务选项
@@ -260,7 +263,7 @@ Face 查询统一调度器的 `queues.resources.vector_queries` 提供已接纳/
 
 批次等待、RPC 等推理耗时按模型汇总。业务消息处理完成、图片流程完成和 Milvus 向量写入分别统计；一条消息可包含主图和全景图，一张图片可生成多条向量。性能汇总不代表所有异步写库及 Kafka 输出已经完成。
 
-[`performance_tools/`](performance_tools/README.md) 提供真实 Kafka 消息快照和限速回放脚本，默认使用 `PtzPersonDetSync`。快照使用独立、无 consumer group 的有界读取，不提交或修改 ALog 消费组 offset；回放显式向输入 Topic 发送消息，保留设备 SN 和图片 object key，并生成新的 `uId` 关联本轮输出。使用方法、指标口径与结果文件见该目录说明。
+[`performance_tools/`](performance_tools/README.md) 提供真实 Kafka 消息快照和限速回放脚本，默认使用 `PtzPersonDetSync`。快照使用独立、无 consumer group 的有界读取，不提交或修改 VisionFlow 消费组 offset；回放显式向输入 Topic 发送消息，保留设备 SN 和图片 object key，并生成新的 `uId` 关联本轮输出。使用方法、指标口径与结果文件见该目录说明。
 
 ## 验证与开发
 

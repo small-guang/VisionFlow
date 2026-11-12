@@ -4,6 +4,7 @@
 .superpowers
 docs/superpowers
 .env.*
+!.env.example
 !deploy/alog/.env.example
 __pycache__/
 *.py[cod]
