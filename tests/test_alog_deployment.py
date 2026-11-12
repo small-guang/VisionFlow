@@ -23,7 +23,7 @@ def _env_keys(path: Path) -> set[str]:
 
 class VisionFlowDeploymentTests(unittest.TestCase):
     def test_dockerfile_packages_the_application_and_default_profile(self):
-        dockerfile = (ROOT / "Dockerfile-ALog").read_text(encoding="utf-8")
+        dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
         self.assertIn("ARG PYTHON_IMAGE=python:3.12-slim-bookworm", dockerfile)
         for instruction in ("COPY main.py ./", "COPY config/ ./config/",
                             "COPY core/ ./core/", "COPY db/ ./db/", "COPY utils/ ./utils/"):
@@ -64,7 +64,7 @@ class VisionFlowDeploymentTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)
             shutil.copyfile(ROOT / "docker-compose.yaml", project / "compose.yaml")
-            shutil.copyfile(ROOT / "Dockerfile-ALog", project / "Dockerfile-ALog")
+            shutil.copyfile(ROOT / "Dockerfile", project / "Dockerfile")
             (project / ".env").write_text(
                 "DEPLOYMENT_SENTINEL=from-env-file\nALOG_IPC_MODE=host\n",
                 encoding="utf-8",
@@ -82,6 +82,7 @@ class VisionFlowDeploymentTests(unittest.TestCase):
         config = json.loads(result.stdout)
         self.assertEqual(config["name"], "visionflow")
         service = config["services"]["visionflow"]
+        self.assertEqual(service["build"]["dockerfile"], "Dockerfile")
         self.assertEqual(service["build"]["args"]["PYTHON_IMAGE"], "python:3.12-slim-bookworm")
         self.assertEqual(service["network_mode"], "host")
         self.assertEqual(service["ipc"], "host")

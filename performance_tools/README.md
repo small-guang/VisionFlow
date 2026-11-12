@@ -6,9 +6,9 @@
 
 ```bash
 python performance_tools/observe_benchmark.py \
-  --output /tmp/alog-benchmark-20261103-1000 \
+  --output /tmp/visionflow-benchmark-20261103-1000 \
   --seconds 300 --interval 5 --resource-interval 1 \
-  --root alog=1234 --root milvus=5678
+  --root visionflow=1234 --root milvus=5678
 ```
 
 把示例 PID 改为对应的**主机 PID**；`--root` 可省略或重复，用于跟踪各根进程及其子进程的 CPU、RSS 和 I/O。默认读取 `logs/ALog.log`、`logs/pipeline_stats.jsonl` 和 `http://127.0.0.1:9091/metrics`，路径和 Milvus 地址可分别通过 `--app-log`、`--pipeline-path`、`--milvus-url` 修改。人脸和 SBS 集合默认为 `alogFace`、`alogSBS`；使用隔离前缀时通过 `--face-collection`、`--sbs-collection` 指定完整集合名。输出目录必须不存在；采集器本身会产生少量磁盘写入。默认采集 `sda` 和 `mmcblk0`；新增磁盘可用重复的 `--disk` 额外指定，例如 `--disk nvme0n1`，请求的设备不存在时会明确记录。
@@ -39,7 +39,7 @@ python performance_tools/observe_io.py \
   --output performance_tools/results/io-observation-20261020-1600 \
   --seconds 180 --interval 1 \
   --pipeline-path logs/pipeline_stats.jsonl \
-  --root alog=1234 --root triton=2345 --root minio=3456 \
+  --root visionflow=1234 --root triton=2345 --root minio=3456 \
   --root milvus=4567 --root etcd=5678
 ```
 
@@ -75,20 +75,20 @@ python -m unittest discover -s tests -p "test_io_observer.py"
 历史快照可以重复使用，但每轮执行都会产生新的业务数据。为测试实例设置独立输入、消费组、五类输出、身份集合和裁图目录，例如在它的环境配置中加入：
 
 ```dotenv
-KAFKA_INPUT_TOPICS=alog-test-input
-KAFKA_GROUP_ID=alog-test-worker
-KAFKA_FACE_DETECTION_RECORD_TOPIC=alog-test-face-detection
-KAFKA_FACE_RECOGNITION_RECORD_TOPIC=alog-test-face-recognition
-KAFKA_PERSON_DETECTION_RECORD_TOPIC=alog-test-person-detection
-KAFKA_PERSON_RECOGNITION_RECORD_TOPIC=alog-test-person-recognition
-KAFKA_VECTOR_RECORD_TOPIC=alog-test-vector
-MILVUS_COLLECTION_PREFIX=alog_test_
-STORAGE_OUTPUT_PREFIX=alog-test/crops
+KAFKA_INPUT_TOPICS=visionflow-test-input
+KAFKA_GROUP_ID=visionflow-test-worker
+KAFKA_FACE_DETECTION_RECORD_TOPIC=visionflow-test-face-detection
+KAFKA_FACE_RECOGNITION_RECORD_TOPIC=visionflow-test-face-recognition
+KAFKA_PERSON_DETECTION_RECORD_TOPIC=visionflow-test-person-detection
+KAFKA_PERSON_RECOGNITION_RECORD_TOPIC=visionflow-test-person-recognition
+KAFKA_VECTOR_RECORD_TOPIC=visionflow-test-vector
+MILVUS_COLLECTION_PREFIX=visionflow_test_
+STORAGE_OUTPUT_PREFIX=visionflow-test/crops
 ```
 
-测试 Worker 和回放工具使用相同的输出 Topic 配置。`replay` 的 `--topic` 默认仍是 `PtzPersonDetSync`，**不会自动跟随 `KAFKA_INPUT_TOPICS`**，隔离运行务必显式添加 `--topic alog-test-input`。先确认测试 Topic 已创建、Worker 已订阅，并确保该实例未订阅生产输入。后文原有命令展示默认 Topic 用法，测试命名空间运行时均应加上该参数。
+测试 Worker 和回放工具使用相同的输出 Topic 配置。`replay` 的 `--topic` 默认仍是 `PtzPersonDetSync`，**不会自动跟随 `KAFKA_INPUT_TOPICS`**，隔离运行务必显式添加 `--topic visionflow-test-input`。先确认测试 Topic 已创建、Worker 已订阅，并确保该实例未订阅生产输入。后文原有命令展示默认 Topic 用法，测试命名空间运行时均应加上该参数。
 
-`MILVUS_COLLECTION_PREFIX` 直接加到四个集合名之前，如 `alog_test_alogFace`，不自动迁移、删除或恢复任何集合。`STORAGE_OUTPUT_PREFIX` 只为新裁图加前缀；原图仍从所选存储后端按历史 object key 读取，Kafka/Milvus 元数据保留实际写入的带前缀 key。换后端不回退历史后端，换输入 Topic 也不自动隔离图库。共用 Triton、Milvus 或存储仍会竞争其容量，不能把混合流量的硬件利用率全归因于本轮。
+`MILVUS_COLLECTION_PREFIX` 直接加到四个集合名之前，如 `visionflow_test_alogFace`，不自动迁移、删除或恢复任何集合。`STORAGE_OUTPUT_PREFIX` 只为新裁图加前缀；原图仍从所选存储后端按历史 object key 读取，Kafka/Milvus 元数据保留实际写入的带前缀 key。换后端不回退历史后端，换输入 Topic 也不自动隔离图库。共用 Triton、Milvus 或存储仍会竞争其容量，不能把混合流量的硬件利用率全归因于本轮。
 
 A/B 两轮固定消息快照及 SHA256、发送顺序/节奏、pano 开关、事件时间策略、算法 TOML、模型版本和有效配置。每轮从同一测试图库初始状态开始，分别观察冷库建档和已有身份命中；不能拿第一轮建库和第二轮复用身份直接比较。保留完整图片完成量、异步输出 ACK/排空时间、各资源排队、RSS 与 CPU/GPU 同窗口采样。只有完整吞吐提高且积压、时延与身份规则仍满足要求，才能确认收益。
 

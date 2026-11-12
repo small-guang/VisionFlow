@@ -2,7 +2,7 @@
 
 VisionFlow 是视觉分析 Worker：从 Kafka 消费关键帧消息，从配置的 OSS 或 MinIO 下载图片，调用 Triton 完成人脸、人型和整图特征分析，将向量写入 Milvus，并向 Kafka 输出检测、识别和向量元数据。
 
-本仓库采用 [Apache License 2.0](LICENSE)。部分配置变量、日志和数据集合仍使用历史名称 `ALOG` / `ALog` / `alog`，以保持现有部署和上下游数据兼容。
+本仓库采用 [Apache License 2.0](LICENSE)。
 
 ## 文档导航
 
@@ -32,7 +32,7 @@ VisionFlow 是视觉分析 Worker：从 Kafka 消费关键帧消息，从配置�
    docker compose up --build visionflow
    ```
 
-Compose 使用宿主机网络和命名卷 `visionflow-logs` 保存日志，并设置 `restart: unless-stopped`。镜像包含项目源码和算法参数；修改源码后需重新构建。依赖地址须从宿主机网络可达。镜像定义见 [Dockerfile-ALog](Dockerfile-ALog)，启动配置见 [docker-compose.yaml](docker-compose.yaml)。
+Compose 使用宿主机网络和命名卷 `visionflow-logs` 保存日志，并设置 `restart: unless-stopped`。镜像包含项目源码和算法参数；修改源码后需重新构建。依赖地址须从宿主机网络可达。镜像定义见 [Dockerfile](Dockerfile)，启动配置见 [docker-compose.yaml](docker-compose.yaml)。
 
 直接在 Linux / WSL 运行：
 
