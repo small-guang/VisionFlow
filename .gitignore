@@ -21,6 +21,8 @@ venv/
 *.jpg
 *.jpeg
 *.png
+!demo/assets/astronaut.png
+!demo/assets/cpu-face-result.png
 *.mp4
 datasets
 tools
@@ -28,3 +30,4 @@ tools
 CLAUDE.md
 .claude/
 performance_tools/results/
+demo/run-output/

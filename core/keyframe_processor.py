@@ -196,26 +196,6 @@ class KeyframeProcessor:
         offset: Any = "",
     ):
         ctx = parse_keyframe_context(data)
-        # if ctx.sn not in [
-        #     "541288EPC11C0013D4B8B7D8",
-        #     "541288EPM21C0013F66A6AEB",
-        #     "541288EPS11C0013C5722941",
-        #     "541288EPM21C0013F4745526",
-        #     "541288EPM21C00138DB6D4AE",
-        #     "541288EPS11C0013998A1ECF",
-        #     "541288EPS11C0013B64023C7",
-        #     "541288EPS11C00165165AF62",
-        #     "541288EPS11C0013E581980E",
-        #     "541288EPM21C0013A30C8A04",
-        #     "541288EPS11C0014DE1A6344",
-        #     "541288EPM21C0013A2C04184",
-        #     "541288EPS11C00139B2E1216",
-        #     "541288EPS11C00138A6DF15D",
-        #     "541288EPS11C00139764BD37",
-        #     "541288EPS11C0013E581980E",
-        # ]:
-        #     return
-
         main_processed = await self._process_keyframe_context(
             ctx,
             oss_client=oss_client,

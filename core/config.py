@@ -50,16 +50,7 @@ class Settings(BaseSettings):
     OUTPUT_BACKLOG_LOW_WATERMARK: int = Field(default=1000, ge=0)
     # 额外手动启用人物转正的设备；SN 包含 EPS（忽略大小写）和全景图自动启用。
     person_upright_device_sns: Annotated[frozenset[str], NoDecode] = Field(
-        default=frozenset({"541288EPS11C0013998A1ECF",
-                           "541288EPS11C0013B64023C7",
-                           "541288EPS11C0013C5722941",
-                           "541288EPS11C0014DE1A6344",
-                           "541288EPS11C00139B2E1216",
-                           "541288EPS11C00138A6DF15D",
-                           "541288EPS11C0013E581980E",
-                           "541288EPS11C00139764BD37",
-                           "541288EPS11C0013E581980E",
-                           }),
+        default=frozenset(),
         validation_alias="PERSON_UPRIGHT_DEVICE_SNS",
     )
     person_face_reuse_mode: Literal["off", "on"] = Field(
@@ -84,11 +75,11 @@ class Settings(BaseSettings):
     KAFKA_AUTO_OFFSET_RESET: str = "earliest"
     KAFKA_SECURITY_PROTOCOL: str = "SASL_PLAINTEXT"
     KAFKA_SASL_MECHANISM: str = "PLAIN"
-    KAFKA_FACE_DETECTION_RECORD_TOPIC: str = "app-camtells-face-detection-record-topic"
-    KAFKA_FACE_RECOGNITION_RECORD_TOPIC: str = "app-camtells-face-recognition-record-topic"
-    KAFKA_PERSON_DETECTION_RECORD_TOPIC: str = "app-camtells-person-detection-record-topic"
-    KAFKA_PERSON_RECOGNITION_RECORD_TOPIC: str = "app-camtells-person-recognition-record-topic"
-    KAFKA_VECTOR_RECORD_TOPIC: str = "app-camtells-vector-record-topic"
+    KAFKA_FACE_DETECTION_RECORD_TOPIC: str = "visionflow-face-detection-record"
+    KAFKA_FACE_RECOGNITION_RECORD_TOPIC: str = "visionflow-face-recognition-record"
+    KAFKA_PERSON_DETECTION_RECORD_TOPIC: str = "visionflow-person-detection-record"
+    KAFKA_PERSON_RECOGNITION_RECORD_TOPIC: str = "visionflow-person-recognition-record"
+    KAFKA_VECTOR_RECORD_TOPIC: str = "visionflow-vector-record"
 
     TRITON_SERVER_URL: str
     # ALog 业务消息处理 worker 数，控制本地流水线并发，不等同于 Triton RPC 并发。

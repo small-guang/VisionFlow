@@ -4,6 +4,8 @@ VisionFlow 当前订阅 `PanoramicPersonDetSync`、`PtzPersonDetSync`、`PtzFace
 
 消息 value 均为 UTF-8 JSON。
 
+下文标题为新部署的默认输出 Topic。已有部署可通过 `KAFKA_*_RECORD_TOPIC` 环境变量继续指定原有名称；切换名称时需同步下游消费者。输出字段不因 Topic 改名而改变。
+
 输出时序：同帧人物并发准备 crop、人脸匹配和 SBS/TBPS 特征，再按原检测顺序提交检测记录与 ReID 分配。检测记录入队发生在该人物适用的特征推理返回后、ReID 查询前；准备失败、0级或编码失败的样本只提交检测记录。
 
 新生 Face ID/ReID 的识别记录分别等待首次人脸/SBS 向量持久化确认；命中已有身份的记录直接入队，包含命中当前进程 pending 身份的情况。因此按序提交不保证新生记录早于后续命中记录到达 Kafka，各 Topic 之间也没有事务性顺序保证。向量元数据只在相应向量写入成功后生成。
@@ -56,17 +58,17 @@ VisionFlow 支持从以下字段解析关键帧对象存储地址，按优先级
 - 如果值不含 `/`、没有图片后缀且不存在设备 SN，补成 `{keyframe}.jpg`。
 - 消息没有显式 SN 时，VisionFlow 会尝试从最终 object name 的第一段推断设备 SN；短名称无法推断时 SN 为空。
 
-原图读取和人脸、人物裁图写入使用同一个配置后端。以下输出中的 `keyframeUrl`、`faceUrl`、`crop_url` 及 Milvus 图片元数据保存 object key，不额外拼接 bucket 或存储主机，也不生成签名 URL；字段名和 object key 命名规则不因切换后端而改变。上游上传和下游读取服务须同步使用相同存储配置；切换需重启 VisionFlow，不迁移历史图片，不自动回退或双写。配置方式见 [README 图片对象存储](../README.md#图片对象存储)。
+原图读取和人脸、人物裁图写入使用同一个配置后端。以下输出中的 `keyframeUrl`、`faceUrl`、`crop_url` 及 Milvus 图片元数据保存 object key，不额外拼接 bucket 或存储主机，也不生成签名 URL；字段名和 object key 命名规则不因切换后端而改变。上游上传和下游读取服务须同步使用相同存储配置；切换需重启 VisionFlow，不迁移历史图片，不自动回退或双写。配置方式见 [配置说明中的图片对象存储](configuration.md#图片对象存储)。
 
 示例：
 
 ```json
 {
-  "sn": "541288EPM21C0013F66A6AEB",
+  "sn": "demo-camera-001",
   "timestamp": 1710000000000,
   "uId": "11111111-1111-4111-8111-111111111111",
-  "keyframe": "541288EPM21C0013F66A6AEB/picture/1782802987309.jpg",
-  "panoKeyframeUrl": "541288EPM21C0013F66A6AEB/picture/1782802987450.jpg"
+  "keyframe": "demo-camera-001/picture/1782802987309.jpg",
+  "panoKeyframeUrl": "demo-camera-001/picture/1782802987450.jpg"
 }
 ```
 
@@ -81,7 +83,7 @@ VisionFlow 支持从以下字段解析关键帧对象存储地址，按优先级
 
 朝向分类只由 `yaw` 决定，`pitch/roll` 不作为 Kafka 字段。独立人脸正常流程不使用 `no_face`；人型 0 级在 crop 和 mask 有效时可仅分析朝向，不做人脸识别。归属门槛和坐标规则见[人脸人型详细规则](人脸人型详细规则.md)。
 
-## 1. 人脸检测记录：`app-camtells-face-detection-record-topic`
+## 1. 人脸检测记录：`visionflow-face-detection-record`
 
 检测框和关键点由 VisionFlow 模型生成，坐标对应关键帧整图。检测记录包含质量分和等级，质量失败也会尽量输出检测记录。质量分级及前置判断统一见[人脸质量规则](人脸人型详细规则.md#一人脸质量与入库)。
 
@@ -113,8 +115,8 @@ VisionFlow 支持从以下字段解析关键帧对象存储地址，按优先级
 	"pictureVectorId": 462513696774553600,
 	"faceOrientation": "side",
 	"isPanoKeyframe": false,
-	"crop_url": "541288EPM21C0013F66A6AEB/face_crop/0fde162e-7815-4e63-b71b-d0889d8ad763.jpg",
-	"devSn": "541288EPM21C0013F66A6AEB",
+	"crop_url": "demo-camera-001/face_crop/0fde162e-7815-4e63-b71b-d0889d8ad763.jpg",
+	"devSn": "demo-camera-001",
 	"timestamp": 1782802738389,
 	"createdAt": 1782803062579,
 	"detectTime": 1782803061772,
@@ -157,7 +159,7 @@ VisionFlow 支持从以下字段解析关键帧对象存储地址，按优先级
 }
 ```
 
-## 2. 人脸识别记录：`app-camtells-face-recognition-record-topic`
+## 2. 人脸识别记录：`visionflow-face-recognition-record`
 
 独立人脸通过质量、crop 上传和特征校验后进入身份查询，候选来自 Milvus `alogFace` 与当前进程 pending 样本。`score/vectorHitFaceId` 对应最高单条相似度及其身份；灰区证据不足时 `aiFaceId="0"/faceStatus=0`，保留候选分数和 ID 供诊断。
 
@@ -188,12 +190,12 @@ VisionFlow 支持从以下字段解析关键帧对象存储地址，按优先级
 
 ```json
 {
-	"devSn": "541288EPM21C0013F66A6AEB",
+	"devSn": "demo-camera-001",
 	"keyframeId": "11111111-1111-4111-8111-111111111111",
 	"pictureVectorId": 462513739325767680,
 	"faceOrientation": "front",
 	"isPanoKeyframe": false,
-	"faceUrl": "541288EPM21C0013F66A6AEB/face_crop/0fde162e-7815-4e63-b71b-d0889d8ad763.jpg",
+	"faceUrl": "demo-camera-001/face_crop/0fde162e-7815-4e63-b71b-d0889d8ad763.jpg",
 	"timestamp": 1782802746345,
 	"createdAt": 1782803104758,
 	"aiFaceId": "86a0d2f3-7be6-4fd7-a619-625391213ca3",
@@ -209,7 +211,7 @@ VisionFlow 支持从以下字段解析关键帧对象存储地址，按优先级
 
 
 
-## 3. 人型检测记录：`app-camtells-person-detection-record-topic`
+## 3. 人型检测记录：`visionflow-person-detection-record`
 
 人型检测记录描述原图中的人物框、COCO-17 关键点、质量结果和最终 crop 地址。`personOrientation` 表示身体朝向，与 `faceOrientation` 独立；两类人型记录复用同一次身体朝向判定。
 
@@ -330,8 +332,8 @@ crop 允许可变宽高比，整图框和关键点保留原坐标。质量分级
 	"faceOrientation": "no_face",
 	"personOrientation": "front",
 	"isPanoKeyframe": false,
-	"crop_url": "541288EPM21C0013F66A6AEB/person_crop/c06806f8-6ef9-4bfe-90ea-7ef539c1dd3b.jpg",
-	"devSn": "541288EPM21C0013F66A6AEB",
+	"crop_url": "demo-camera-001/person_crop/c06806f8-6ef9-4bfe-90ea-7ef539c1dd3b.jpg",
+	"devSn": "demo-camera-001",
 	"timestamp": 1783670571808,
 	"createdAt": 1783670576302,
 	"detectTime": 1783670576233,
@@ -468,7 +470,7 @@ crop 允许可变宽高比，整图框和关键点保留原坐标。质量分级
 }
 ```
 
-## 4. 人型识别记录：`app-camtells-person-recognition-record-topic`
+## 4. 人型识别记录：`visionflow-person-recognition-record`
 
 最终质量 1/2 级且编码成功的人物进入特征处理和身份提交。SBS 特征无效时输出 `SKIPPED`；有效时根据当前观察人脸选择同脸或匿名查询。只有“2 级 + 当前非零人脸”才允许创建或扩充 SBS，匿名人物只复用已有 ReID。
 
@@ -538,14 +540,14 @@ crop 允许可变宽高比，整图框和关键点保留原坐标。质量分级
 
 ```json
 {
-	"devSn": "541288EPM21C0013F66A6AEB",
+	"devSn": "demo-camera-001",
 	"keyframeId": "fe338f21-30a8-81bb-cddc-91ebb759e062",
 	"pictureVectorId": 465799814198591488,
 	"faceOrientation": "no_face",
 	"personOrientation": "back",
 	"isPanoKeyframe": false,
-	"keyframeUrl": "541288EPM21C0013F66A6AEB/picture/1783586528497.jpg",
-	"crop_url": "541288EPM21C0013F66A6AEB/person_crop/c06806f8-6ef9-4bfe-90ea-7ef539c1dd3b.jpg",
+	"keyframeUrl": "demo-camera-001/picture/1783586528497.jpg",
+	"crop_url": "demo-camera-001/person_crop/c06806f8-6ef9-4bfe-90ea-7ef539c1dd3b.jpg",
 	"aiFaceId": "0",
 	"reid": "0",
 	"vectorHitReid": "",
@@ -608,7 +610,7 @@ crop 允许可变宽高比，整图框和关键点保留原坐标。质量分级
 }
 ```
 
-## 5. 向量信息记录：`app-camtells-vector-record-topic`
+## 5. 向量信息记录：`visionflow-vector-record`
 
 VisionFlow 在向量成功写入 Milvus 后，会发送向量元数据记录。该消息不包含原始 embedding。
 
@@ -655,13 +657,13 @@ VisionFlow 在向量成功写入 Milvus 后，会发送向量元数据记录。�
 {
   "vectorId": 123456,
   "vectorDim": 512,
-  "devSn": "541288EPM21C0013F66A6AEB",
+  "devSn": "demo-camera-001",
   "keyframeId": "11111111-1111-4111-8111-111111111111",
   "pictureVectorId": 462513696774553600,
   "isPanoKeyframe": false,
   "timestamp": 1710000000000,
   "createdAt": 1710000000456,
-  "keyframeUrl": "541288EPM21C0013F66A6AEB/picture/1780279016175.jpg",
+  "keyframeUrl": "demo-camera-001/picture/1780279016175.jpg",
   "modelName": "Person ReID Vector | OpenAI CLIP ViT-B/16 (ViT-B-16.pt)",
   "vectorDbName": "alogTBPS",
   "aiId": "b7e6a5b8-7e4a-4645-9c9c-6ebe547833a4",
